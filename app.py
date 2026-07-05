@@ -698,3 +698,7 @@ with tab_pred:
                     if save_to_gsheet(to_save):
                         st.balloons()
                         st.success("✅ Dashboard Updated Permanently!")
+
+                        # --- ADD THIS LINE TO FIX AUTO-UPDATE ---
+                        st.rerun() 
+                        # ----------------------------------------                       
