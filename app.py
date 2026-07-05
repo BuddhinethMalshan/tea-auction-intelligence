@@ -41,90 +41,109 @@ def set_design():
         '''
 
     st.markdown(f'''
-    <style>
-    .stApp {{
-        {bg_css}
-        background-size: cover;
-        background-attachment: fixed;
-    }}
-    
-    /* Global Typography */
-    h1, h2, h3, p, span, div {{ color: #ffffff !important; }}
+        <style>
+        /* 1. Background & Overlay */
+        .stApp {{
+            {bg_css}
+            background-size: cover;
+            background-attachment: fixed;
+        }}
+        
+        .main {{
+            background-color: rgba(0, 0, 0, 0.85); 
+            margin: 15px;
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }}
 
-    /* Tab Design */
-    .stTabs [data-baseweb="tab-list"] {{ gap: 8px; }}
-    .stTabs [data-baseweb="tab"] {{
-        background-color: rgba(255, 255, 255, 0.05);
-        border-radius: 4px 4px 0 0;
-        padding: 8px 20px;
-    }}
-    .stTabs [aria-selected="true"] {{
-        background-color: #1e3d2b !important;
-        color: #d4af37 !important;
-        border-bottom: 2px solid #d4af37 !important;
-    }}
+        /* 2. Simplified Safe Typography (No longer blocks Green/Red) */
+        h1, h2, h3, .stMarkdown p {{
+            color: #ffffff !important;
+        }}
 
-    /* --- MARKET COVERAGE BADGES (RE-STYLED) --- */
-    .combo-container {{
-        background-color: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(212, 175, 55, 0.3);
-        border-radius: 12px;
-        padding: 20px;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        justify-content: flex-start;
-    }}
-    .combo-badge {{
-        background-color: rgba(0, 0, 0, 0.5);
-        color: #d4af37 !important;
-        border: 1px solid #d4af37;
-        padding: 4px 12px;
-        border-radius: 20px;
-        font-size: 0.72rem;
-        font-weight: 500;
-        white-space: nowrap;
-    }}
+        /* 3. METRIC COLOR FIX: Force Green/Red for Market Trends */
+        [data-testid="stMetricValue"] {{
+            color: #ffffff !important;
+        }}
+        [data-testid="stMetricDelta"] > div {{
+            color: inherit !important;
+        }}
+        div[data-testid="stMetricDelta"] > div[data-direction="up"] {{
+            color: #09ab3b !important; /* Green */
+        }}
+        div[data-testid="stMetricDelta"] > div[data-direction="down"] {{
+            color: #ff4b4b !important; /* Red */
+        }}
 
-    /* --- GRADE CAROUSEL CARDS --- */
-    .grade-card {{
-        background-color: rgba(255, 255, 255, 0.03);
-        border-radius: 12px;
-        padding: 15px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        margin-top: 10px;
-        min-height: 250px;
-    }}
-    .grade-header {{ color: #ffffff; font-size: 1.1rem; font-weight: bold; }}
-    .grade-full-name {{ font-size: 0.85rem; color: #d4af37; margin-bottom: 8px; }}
-    .grade-desc {{ font-size: 0.82rem; color: #cccccc; line-height: 1.4; }}
-    
-    .region-tag {{
-        background-color: #1e3d2b;
-        color: #d4af37 !important;
-        padding: 2px 8px;
-        border-radius: 4px;
-        font-size: 0.65rem;
-        margin-right: 4px;
-        display: inline-block;
-        margin-bottom: 4px;
-        border: 1px solid #d4af37;
-    }}
+        /* 4. Tab Design */
+        .stTabs [data-baseweb="tab-list"] {{ gap: 8px; }}
+        .stTabs [data-baseweb="tab"] {{
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: 4px 4px 0 0;
+            padding: 8px 20px;
+        }}
+        .stTabs [aria-selected="true"] {{
+            background-color: #1e3d2b !important;
+            color: #d4af37 !important;
+            border-bottom: 2px solid #d4af37 !important;
+        }}
 
-    /* Chevron Arrows Fix */
-    div[data-testid="column"] button {{
-        background-color: transparent !important;
-        border: 1px solid rgba(255, 255, 255, 0.2) !important;
-        color: #ffffff !important;
-        border-radius: 50% !important;
-        transition: 0.3s;
-    }}
-    div[data-testid="column"] button:hover {{
-        border-color: #d4af37 !important;
-        color: #d4af37 !important;
-    }}
-    </style>
-    ''', unsafe_allow_html=True)
+        /* 5. Market Coverage Badges */
+        .combo-container {{
+            background-color: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }}
+        .combo-badge {{
+            background-color: rgba(0, 0, 0, 0.5);
+            color: #d4af37 !important;
+            border: 1px solid #d4af37;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.72rem;
+        }}
+
+        /* 6. Grade Cards */
+        .grade-card {{
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 12px 15px; /* Reduced padding */
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: -10px;   /* Pulls card closer to the image */
+            min-height: 220px;   /* Reduced min-height */
+            height: auto;
+        }}
+        .grade-header {{ color: #ffffff; font-size: 1.05rem; font-weight: bold; margin: 0px !important; /* Remove default margins */}}
+        .grade-full-name {{ font-size: 0.85rem; color: #d4af37; }}
+        .grade-desc {{ font-size: 0.82rem; color: #cccccc; }}
+        
+        .region-tag {{
+            background-color: #1e3d2b;
+            color: #d4af37 !important;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.65rem;
+            border: 1px solid #d4af37;
+        }}
+
+        /* 7. Minimalist Arrows */
+        div[data-testid="column"] button {{
+            background-color: transparent !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            color: #ffffff !important;
+            border-radius: 50% !important;
+        }}
+        div[data-testid="column"] button:hover {{
+            border-color: #d4af37 !important;
+            color: #d4af37 !important;
+        }}
+        </style>
+        ''', unsafe_allow_html=True)
 
 set_design()
 
@@ -145,17 +164,121 @@ tab_home, tab_dash, tab_pred = st.tabs(["🏠 Home / Info", "📊 Market Dashboa
 # TAB 1: HOME / INFO (REBALANCED ROW 1)
 # ==========================================
 # ==========================================
-# TAB 1: HOME / INFO (ROW 1 - BALANCED & SHARP)
+# TAB 1: HOME / INFO (FINAL UI/UX POLISH)
 # ==========================================
 with tab_home:
-    # 1. We use a 1.5 to 1 ratio. 
-    # This gives the list more space and forces the map to be smaller 
-    # but much sharper than using a fixed pixel width.
-    col_scope, col_map = st.columns([1.5, 1], vertical_alignment="top")
+    # --- 1. GLOBAL UI STYLING (Cinema Overlay & Components) ---
+    # We apply this here to ensure it covers all elements in this tab
+    bg_css = ""
+    if os.path.exists("assets/bg_tea.jpg"):
+        bin_str = get_base64("assets/bg_tea.jpg")
+        bg_css = f'background: linear-gradient(rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.85)), url("data:image/png;base64,{bin_str}");'
+
+    st.markdown(f'''
+        <style>
+        /* Background & Overlay */
+        .stApp {{
+            {bg_css}
+            background-size: cover;
+            background-attachment: fixed;
+        }}
+        
+        .main {{
+            background-color: rgba(0, 0, 0, 0.85); 
+            margin: 15px;
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }}
+
+        /* Typography */
+        h1, h2, h3, h4, .stMarkdown p {{
+            color: #ffffff !important;
+        }}
+
+        /* Metric Colors Fix */
+        [data-testid="stMetricValue"] {{ color: #ffffff !important; }}
+        [data-testid="stMetricDelta"] > div {{ color: inherit !important; }}
+        div[data-testid="stMetricDelta"] > div[data-direction="up"] {{ color: #09ab3b !important; }}
+        div[data-testid="stMetricDelta"] > div[data-direction="down"] {{ color: #ff4b4b !important; }}
+
+        /* Market Coverage Badges */
+        .combo-container {{
+            background-color: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: flex-start;
+        }}
+        .combo-badge {{
+            background-color: rgba(0, 0, 0, 0.5);
+            color: #d4af37 !important;
+            border: 1px solid #d4af37;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.72rem;
+            font-weight: 500;
+            white-space: nowrap;
+        }}
+
+        /* Grade Cards (Compact & Hugging Image) */
+        .grade-card {{
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 12px 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: 0px; 
+            height: auto;
+            min-height: 220px;
+        }}
+        .grade-header {{ color: #ffffff; font-size: 1.1rem; font-weight: bold; margin-bottom: 2px; }}
+        .grade-full-name {{ font-size: 0.82rem; color: #d4af37; margin-bottom: 8px; font-weight: 500; }}
+        .grade-desc {{ font-size: 0.8rem; color: #bbbbbb; line-height: 1.3; margin-bottom: 12px; }}
+        
+        .region-tag {{
+            background-color: #1e3d2b;
+            color: #d4af37 !important;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.65rem;
+            border: 1px solid #d4af37;
+            margin-right: 4px;
+            margin-bottom: 4px;
+            display: inline-block;
+        }}
+
+        /* Image Gap Fix */
+        [data-testid="stImage"] {{
+            margin-bottom: -15px !important;
+        }}
+
+        /* Professional Minimalist Arrows */
+        div[data-testid="column"] button {{
+            background-color: rgba(255, 255, 255, 0.05) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            color: #ffffff !important;
+            border-radius: 50% !important;
+            transition: 0.3s;
+            width: 45px !important;
+            height: 45px !important;
+        }}
+        div[data-testid="column"] button:hover {{
+            border-color: #d4af37 !important;
+            color: #d4af37 !important;
+            background-color: rgba(212, 175, 55, 0.1) !important;
+        }}
+        </style>
+        ''', unsafe_allow_html=True)
+
+    # --- 2. ROW 1: MARKET COVERAGE & MAP (Balanced 1.5:1 Ratio) ---
+    col_scope, col_map = st.columns([1.5, 1], vertical_alignment="center")
 
     with col_scope:
-        st.markdown("<h3 style='color:#d4af37; margin-bottom:5px;'>📊 Market Coverage</h3>", unsafe_allow_html=True)
-        st.write("Tracking 43 Unique Grade-Region segments for predictive analysis:")
+        st.markdown("<h3 style='color:#d4af37; margin:0;'>📊 Market Coverage</h3>", unsafe_allow_html=True)
+        st.write("Ensuring deep visibility into 43 regional auction segments:")
         
         all_combos = [
             "UDAPUSSELLAWAS | FBOP/FBOP1", "UVA MEDIUM | BOP1", "UVA MEDIUM | BOPF/BOPFSP", 
@@ -173,41 +296,40 @@ with tab_home:
             "NUWARA ELIYAS | PEK/PEK1", "WESTERN MEDIUM | PEK/PEK1", "WESTERN HIGH | BOP1"
         ]
         
-        # Creating the Gold-Bordered Badges
         badges_html = "".join([f"<div class='combo-badge'>{c}</div>" for c in sorted(all_combos)])
-        # combo-container styling from our design block ensures no scrollbars and correct height
         st.markdown(f"<div class='combo-container'>{badges_html}</div>", unsafe_allow_html=True)
 
     with col_map:
-        st.markdown("<h4 style='color:#d4af37; margin-bottom:10px;'>🗺️ Ceylon Tea: Agro-Climatic Growing Regions</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color:#d4af37; margin:0;'>🗺️ Ceylon Tea: Agro-Climatic Growing Regions</h4>", unsafe_allow_html=True)
         if os.path.exists("assets/map_sl.png"):
-            # use_container_width=True keeps the resolution high while fitting the 1.0 column width
-            st.image("assets/map_sl.png", use_container_width=True, caption="Official Regional Elevation Mapping")
+            # use_container_width=True in a narrower column keeps it small but high-resolution
+            st.image("assets/map_sl.png", use_container_width=True)
         else:
-            st.info("Please ensure assets/map_sl.png exists in your project folder.")
+            st.info("Map image missing in assets folder.")
 
     st.divider()
 
-    # --- ROW 2: GRADE CAROUSEL STARTS BELOW ---
-    st.markdown("<h3 style='color:#d4af37; text-align:center;'>🍃 Unique Tea Grades & Regional Profiles</h3>", unsafe_allow_html=True)
+    # --- 3. ROW 2: GRADE CAROUSEL ---
+    st.markdown("<h3 style='color:#d4af37; text-align:center; margin-bottom:20px;'>🍃 Unique Tea Grades & Regional Profiles</h3>", unsafe_allow_html=True)
 
     tea_grades = [
         {"name": "BOP", "full": "Broken Orange Pekoe", "img": "assets/grade_bop.jpg", "desc": "Neat, medium broken leaf. Balances strength with bright liquor.", "regions": ["WESTERN HIGH", "WESTERN MEDIUM", "UVA MEDIUM", "LOW GROWNS", "NUWARA ELIYAS", "UDAPUSSELLAWAS", "UVA HIGH"]},
         {"name": "BOPF / BOPFSP", "full": "BOP Fannings / Special", "img": "assets/grade_bopfsp.jpg", "desc": "Fine grain fannings. Quick brewing with intense brightness.", "regions": ["UVA MEDIUM", "WESTERN HIGH", "WESTERN MEDIUM", "NUWARA ELIYAS", "UDAPUSSELLAWAS", "UVA HIGH", "LOW GROWNS"]},
         {"name": "FBOP / FBOP1", "full": "Flowery Broken Orange Pekoe", "img": "assets/grade_fbop.jpg", "desc": "Leafy grade with tips. Provides rich aroma and sweetness.", "regions": ["UDAPUSSELLAWAS", "UVA MEDIUM", "WESTERN HIGH", "WESTERN MEDIUM", "UVA HIGH", "LOW GROWNS"]},
-        # {"name": "OP1", "full": "Orange Pekoe 1", "img": "assets/grade_op1.jpg", "desc": "Long, wiry specialty leaf. Delivers a smooth, honey-like liquor.", "regions": ["UVA MEDIUM", "WESTERN HIGH", "UVA HIGH", "LOW GROWNS", "WESTERN MEDIUM"]},
+        {"name": "OP1", "full": "Orange Pekoe 1", "img": "assets/grade_op1.jpg", "desc": "Long, wiry specialty leaf. Delivers a smooth, honey-like liquor.", "regions": ["UVA MEDIUM", "WESTERN HIGH", "UVA HIGH", "LOW GROWNS", "WESTERN MEDIUM"]},
         {"name": "PEK / PEK1", "full": "Pekoe / Pekoe 1", "img": "assets/grade_pek.jpg", "desc": "Curly, shotty style. High thickness and infusion depth.", "regions": ["UVA MEDIUM", "WESTERN HIGH", "UVA HIGH", "NUWARA ELIYAS", "UDAPUSSELLAWAS", "WESTERN MEDIUM", "LOW GROWNS"]},
-        {"name": "OP / OPA", "full": "Orange Pekoe / Orange Pekoe A", "img": "assets/grade_op.jpg", "desc": "Bold, large leaf. Mild liquor popular in specialty markets.", "regions": ["UVA MEDIUM", "WESTERN HIGH", "WESTERN MEDIUM", "UVA HIGH", "UDAPUSSELLAWAS"]},
+        {"name": "OP / OPA", "full": "Orange Pekoe / Orange Pekoe A", "img": "assets/grade_op.jpg", "desc": "Bold, large leaf. Mild liquor popular in European tea markets.", "regions": ["UVA MEDIUM", "WESTERN HIGH", "WESTERN MEDIUM", "UVA HIGH", "UDAPUSSELLAWAS"]},
         {"name": "BOP1", "full": "Broken Orange Pekoe 1", "img": "assets/grade_bop1.jpg", "desc": "Wiry, shorter than OP1. Known for refined appearance.", "regions": ["UVA MEDIUM", "WESTERN MEDIUM", "LOW GROWNS", "UVA HIGH", "WESTERN HIGH"]}
     ]
 
     if 'grade_index' not in st.session_state:
         st.session_state.grade_index = 0
 
-    # Layout with Minimalist Arrows
-    arr_l, c1, c2, c3, arr_r = st.columns([0.2, 1, 1, 1, 0.2], vertical_alignment="center")
+    # Layout: Minimalist Arrows (Thin chevrons for professionalism)
+    arr_l, c1, c2, c3, arr_r = st.columns([0.15, 1, 1, 1, 0.15], vertical_alignment="top")
 
     with arr_l:
+        st.markdown("<br><br><br>", unsafe_allow_html=True)
         if st.button("‹", key="p_btn"):
             if st.session_state.grade_index > 0:
                 st.session_state.grade_index -= 1
@@ -226,12 +348,13 @@ with tab_home:
                     <div class='grade-header'>{grade['name']}</div>
                     <div class='grade-full-name'>{grade['full']}</div>
                     <div class='grade-desc'>{grade['desc']}</div>
-                    <p style='font-weight:bold; font-size:0.75rem; margin-top:10px; color:#ffffff;'>Market Scope:</p>
-                    {tags_html}
+                    <p style='font-weight:bold; font-size:0.75rem; margin:0 0 5px 0; color:#ffffff;'>Market Scope:</p>
+                    <div>{tags_html}</div>
                 </div>
             """, unsafe_allow_html=True)
 
     with arr_r:
+        st.markdown("<br><br><br>", unsafe_allow_html=True)
         if st.button("›", key="n_btn"):
             if st.session_state.grade_index < len(tea_grades) - 3:
                 st.session_state.grade_index += 1
@@ -258,107 +381,130 @@ with tab_dash:
         with column:
             st.subheader(f"{elev} Grown")
             elev_df = df[df['elevation'].str.upper() == elev.upper()]
-            if elev_df.empty:
-                st.warning("No data for this elevation.")
-                return
-
+            
+            # 1. Filters
             reg = st.selectbox(f"Region", sorted(elev_df['region'].unique()), key=f"r_{elev}")
             grd = st.selectbox(f"Grade", sorted(elev_df[elev_df['region'] == reg]['grade'].unique()), key=f"g_{elev}")
             
+            # 2. Extract specific series
             series_df = elev_df[(elev_df['region'] == reg) & (elev_df['grade'] == grd)].sort_values('true_date')
             
             if series_df.empty:
-                st.write("No data for this selection.")
+                st.write("No data found.")
                 return
 
-            # --- KPI CALCULATIONS ---
-            actuals_only = series_df.dropna(subset=['price'])
-            latest_price = actuals_only['price'].iloc[-1] if not actuals_only.empty else 0
-            
+            # --- STEP 1: FIND LATEST ACTUAL PRICE ---
+            actuals = series_df.dropna(subset=['price'])
+            if not actuals.empty:
+                latest_price = actuals['price'].iloc[-1]
+                last_actual_date = actuals['true_date'].iloc[-1]
+            else:
+                latest_price, last_actual_date = 0, series_df['true_date'].iloc[0]
+
+            # --- STEP 2: FIND FORECASTS (LIVE SESSION OR DATABASE) ---
             f1, f2, f4 = None, None, None
             
-            # 1. Check Session State first (Live run results)
+            # A. Priority 1: Check Live Session (Tab 3 was just run)
             if 'final_results' in st.session_state:
                 res = st.session_state.final_results
+                r_col = [c for c in res.columns if c.lower() == 'region'][0]
+                g_col = [c for c in res.columns if c.lower() == 'grade'][0]
                 
-                # --- FLEX-MATCHING LOGIC (Prevents KeyErrors) ---
-                r_col = 'region' if 'region' in res.columns else 'Region'
-                g_col = 'grade' if 'grade' in res.columns else 'Grade'
-                f1_col = 'forecast_1w' if 'forecast_1w' in res.columns else '1W Forecast (Y)'
-                f2_col = 'forecast_2w' if 'forecast_2w' in res.columns else '2W Forecast (Y)'
-                f4_col = 'forecast_4w' if 'forecast_4w' in res.columns else '4W Forecast (Y)'
-
+                # Find the specific columns for 1W, 2W, 4W based on keywords
+                f1_cols = [c for c in res.columns if '1w' in c.lower() or 'forecast' in c.lower()]
+                f2_cols = [c for c in res.columns if '2w' in c.lower()]
+                f4_cols = [c for c in res.columns if '4w' in c.lower()]
+                
                 match = res[(res[r_col].str.upper() == reg.upper()) & (res[g_col].str.upper() == grd.upper())]
-                
                 if not match.empty:
-                    f1 = match[f1_col].iloc[0]
-                    f2 = match[f2_col].iloc[0]
-                    f4 = match[f4_col].iloc[0]
-            
-            # 2. If Session is empty, look at history
-            if f1 is None:
-                # Check for history forecasts (ensure names match your GSheet/CSV)
-                f1_col_hist = 'forecast_1w' if 'forecast_1w' in series_df.columns else 'predicted_price'
-                if f1_col_hist in series_df.columns:
-                    hist_f = series_df.dropna(subset=[f1_col_hist])
-                    if not hist_f.empty:
-                        f1 = hist_f[f1_col_hist].iloc[-1]
-                        f2 = hist_f.get('forecast_2w', pd.Series([None])).iloc[-1]
-                        f4 = hist_f.get('forecast_4w', pd.Series([None])).iloc[-1]
+                    f1 = match[f1_cols[0]].iloc[0] if f1_cols else None
+                    f2 = match[f2_cols[0]].iloc[0] if f2_cols else None
+                    f4 = match[f4_cols[0]].iloc[0] if f4_cols else None
 
-            # --- RENDER KPIs ---
+            # B. Priority 2: Check Database (Loaded from GSheet history)
+            if f1 is None:
+                db_f_cols = [c for c in series_df.columns if 'forecast' in c.lower() or 'pred' in c.lower()]
+                if db_f_cols:
+                    # Look for the last row that HAS a forecast saved
+                    history_forecasts = series_df.dropna(subset=[db_f_cols[0]])
+                    if not history_forecasts.empty:
+                        latest_f_row = history_forecasts.iloc[-1]
+                        f1 = latest_f_row[db_f_cols[0]]
+                        # Match 2w/4w by name
+                        f2_m = [c for c in db_f_cols if '2w' in c.lower()]
+                        f4_m = [c for c in db_f_cols if '4w' in c.lower()]
+                        f2 = latest_f_row[f2_m[0]] if f2_m else None
+                        f4 = latest_f_row[f4_m[0]] if f4_m else None
+
+            # --- STEP 3: RENDER KPI METRICS ---
+            # --- STEP 3: RENDER KPI METRICS (Color Optimized) ---
             k_cols = st.columns(3)
             k_cols[0].metric("Current", f"Rs. {latest_price:.0f}")
             
             if f1:
-                delta = f1 - latest_price
-                k_cols[1].metric("Next Week", f"Rs. {f1:.0f}", f"{delta:+.2f}")
-                k_cols[2].metric("Forecast (4W)", f"Rs. {f4:.0f}" if f4 else "N/A")
+                # Calculate Percentage Changes
+                pct_1w = ((f1 - latest_price) / latest_price) * 100 if latest_price > 0 else 0
+                pct_4w = ((f4 - latest_price) / latest_price) * 100 if latest_price > 0 and f4 else 0
+
+                # Card 1: 1-Week Forecast
+                # normal color = green for positive, red for negative
+                k_cols[1].metric(
+                    label="Next Week", 
+                    value=f"Rs. {f1:.0f}", 
+                    delta=f"{pct_1w:+.2f}%",
+                    delta_color="normal" 
+                )
+                
+                # Card 2: 4-Week Forecast
+                k_cols[2].metric(
+                    label="Forecast (4W)", 
+                    value=f"Rs. {f4:.0f}" if f4 else "N/A", 
+                    delta=f"{pct_4w:+.2f}%" if f4 else None,
+                    delta_color="normal"
+                )
             else:
                 k_cols[1].metric("Next Week", "N/A")
                 k_cols[2].metric("Forecast", "N/A")
 
-            # --- CHART WITH FULL TRAJECTORY ---
+            # --- STEP 4: RENDER CHART ---
             fig = px.line(series_df, x='true_date', y='price', title=f"{reg} - {grd}")
-            fig.update_traces(line=dict(color=color, width=2), name="Actual Price", showlegend=True)
+            fig.update_traces(line=dict(color=color, width=2), name="Market Price", showlegend=True)
             
-            # 1. REMOVE 2022 CHART GAP
+            # 1. 2022 Gap Removal
             fig.update_xaxes(rangebreaks=[dict(values=pd.date_range("2022-01-01", "2022-12-31"))])
             
-            # 2. RANGE SLIDER
+            # 2. Horizontal Scroll Bar (Range Slider)
             fig.update_xaxes(rangeslider_visible=True)
 
-            # 3. ZOOM (Show last 6 months + room for forecast)
-            last_date = series_df['true_date'].max()
-            fig.update_xaxes(range=[last_date - pd.DateOffset(months=6), last_date + pd.Timedelta(weeks=6)])
+            # 3. Default Zoom (Last 6 Months + Forecast window)
+            last_dt_in_data = series_df['true_date'].max()
+            fig.update_xaxes(range=[last_dt_in_data - pd.DateOffset(months=6), last_dt_in_data + pd.Timedelta(weeks=6)])
 
-            # 4. HISTORICAL FORECAST DOTS
-            if 'forecast_1w' in series_df.columns:
-                fig.add_scatter(x=series_df['true_date'], y=series_df['forecast_1w'], 
+            # 4. HISTORICAL FORECAST DOTS (Restored Feature)
+            # Shows orange dots where the model made predictions in the past
+            db_f_cols = [c for c in series_df.columns if 'forecast' in c.lower() or 'pred' in c.lower()]
+            if db_f_cols:
+                fig.add_scatter(x=series_df['true_date'], y=series_df[db_f_cols[0]], 
                                 mode='markers', name='Past Forecasts', 
                                 marker=dict(color='orange', size=3, opacity=0.4))
 
-            # 5. FUTURE TRAJECTORY (1W, 2W, 4W)
+            # 5. FUTURE FORECAST PATH (Connecting Live/Saved Forecasts)
             if f1:
-                # Construct dates for the trajectory
-                # Use current date as starting point for the dashed line
-                future_dates = [last_date, last_date + pd.Timedelta(weeks=1)]
-                future_prices = [latest_price, f1]
-                
-                # Add 2W and 4W if available
+                path_dates = [last_actual_date, last_actual_date + pd.Timedelta(weeks=1)]
+                path_prices = [latest_price, f1]
                 if f2:
-                    future_dates.append(last_date + pd.Timedelta(weeks=2))
-                    future_prices.append(f2)
+                    path_dates.append(last_actual_date + pd.Timedelta(weeks=2))
+                    path_prices.append(f2)
                 if f4:
-                    future_dates.append(last_date + pd.Timedelta(weeks=4))
-                    future_prices.append(f4)
+                    path_dates.append(last_actual_date + pd.Timedelta(weeks=4))
+                    path_prices.append(f4)
                 
-                fig.add_scatter(x=future_dates, y=future_prices, mode='lines+markers', 
+                fig.add_scatter(x=path_dates, y=path_prices, mode='lines+markers', 
                                 name='Forecast Path', 
-                                line=dict(dash='dash', color="#FF7300", width=3),
-                                marker=dict(size=10, color="#FF3C00", symbol='diamond'))
+                                line=dict(dash='dash', color="#FF7B00", width=3),
+                                marker=dict(size=10, color="#FF4D00", symbol='diamond'))
 
-            # UI Styling
+            # 6. UI Layout Cleanup
             fig.update_layout(
                 height=450,
                 margin=dict(l=0, r=0, t=40, b=0),
@@ -370,7 +516,6 @@ with tab_dash:
     create_kpi_chart_block(col_h, "High", "#18ccec")
     create_kpi_chart_block(col_m, "Medium", "#d4de14")
     create_kpi_chart_block(col_l, "Low", "#2ca02c")
-
 
 
 
