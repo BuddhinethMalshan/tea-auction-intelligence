@@ -355,8 +355,8 @@ with tab_dash:
                 
                 fig.add_scatter(x=future_dates, y=future_prices, mode='lines+markers', 
                                 name='Forecast Path', 
-                                line=dict(dash='dash', color='#FFD700', width=3),
-                                marker=dict(size=10, color='#FFD700', symbol='diamond'))
+                                line=dict(dash='dash', color="#FF7300", width=3),
+                                marker=dict(size=10, color="#FF3C00", symbol='diamond'))
 
             # UI Styling
             fig.update_layout(
