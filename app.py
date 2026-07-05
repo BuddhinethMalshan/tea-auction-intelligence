@@ -372,12 +372,12 @@ with tab_dash:
     create_kpi_chart_block(col_l, "Low", "#2ca02c")
 
 
+
+
 # ==========================================
 # TAB 3: PRICE PREDICTOR
 # ==========================================
 with tab_pred:
-    # PASTE YOUR EXISTING TAB 3 CODE HERE
-    st.info("Price Predictor is active. PDF Intelligence pipeline and Stacking Ensemble ready.")
     st.header("🔮 Price Prediction Engine")
 
     # 1. Initialize Engines
@@ -387,8 +387,8 @@ with tab_pred:
         st.session_state.engine = TeaInferenceEngine()
 
     # Load master history for combinations
-    history = pd.read_csv("df_global_final.csv")
-    history['true_date'] = pd.to_datetime(history['true_date'])
+    # Using the cached function we created earlier for speed
+    history = load_base_data() 
     combos = history[['elevation', 'region', 'grade']].drop_duplicates().sort_values(['elevation', 'region'])
 
     # 2. Upload Section
@@ -407,16 +407,51 @@ with tab_pred:
         st.divider()
         st.subheader("🛠 Step 1: Verify Market Context")
         
-        # --- DATE & USD HANDLING ---
-        try: def_date = pd.to_datetime(ext.get('sale_date'))
-        except: def_date = None # Forces user to check if AI fails
+        # --- ROBUST DATE HANDLING (CLOUD COMPATIBLE) ---
+        raw_ai_date = ext.get('sale_date')
+        date_extracted_successfully = False
+        
+        # We use today's date ONLY as a placeholder to prevent the Cloud crash
+        # But we track if it was actually found by the AI
+        def_date = datetime.date.today()
+        
+        if raw_ai_date:
+            try:
+                temp_date = pd.to_datetime(raw_ai_date)
+                if not pd.isna(temp_date):
+                    def_date = temp_date.date()
+                    date_extracted_successfully = True
+            except:
+                pass
         
         col_m1, col_m2 = st.columns(2)
-        verified_date = col_m1.date_input("Auction Date (Anchor)", value=def_date, help="Mandatory: Select the Wednesday of the auction.")
-        u_usd = col_m2.number_input("Latest USD/LKR Rate", value=float(ext.get('usd_rate', 300.0)), format="%.2f")
         
-        if not verified_date:
-            st.error("🚨 **Auction Date is required.** Please select a date above to enable forecasting.")
+        # This renders safely on Cloud because def_date is never None
+        verified_date = col_m1.date_input(
+            "Auction Date (Anchor)", 
+            value=def_date, 
+            help="Mandatory: Select the Wednesday of the auction."
+        )
+        
+        u_usd = col_m2.number_input(
+            "Latest USD/LKR Rate", 
+            value=float(ext.get('usd_rate', 300.0)), 
+            format="%.2f"
+        )
+        
+        # --- DATA INTEGRITY GUARD ---
+        # If AI failed, force the user to interact with a checkbox to prevent accidental "Today" sync
+        if not date_extracted_successfully:
+            st.warning("⚠️ **AI Date Extraction Failed.** The date below is set to 'Today' as a placeholder.")
+            date_confirmed = st.checkbox("I have manually verified that the Auction Date above is correct.")
+        else:
+            st.success(f"✅ AI detected Auction Date: {verified_date}")
+            date_confirmed = True # AI found it, so it's pre-confirmed
+
+        # Logic to block the rest of the UI if date isn't confirmed
+        if not date_confirmed:
+            st.error("🚨 Please verify/correct the Auction Date and check the confirmation box to proceed.")
+            st.stop() # Stops execution here until the user checks the box
 
         # --- TABLE BUILDING HELPERS ---
         weather_opts = ["Bright", "Rainy", "Overcast", "Mixed"]
