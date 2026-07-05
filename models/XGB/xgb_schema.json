@@ -1,0 +1,1 @@
+{"features": ["month", "week_no", "region", "grade", "elevation", "weather_cat", "crop_cat", "USD_to_LKR", "lag_price_0", "lag_price_1", "lag_price_2"], "categorical_columns": ["region", "grade", "elevation", "weather_cat", "crop_cat"]}
