@@ -1,0 +1,12 @@
+streamlit
+pandas
+plotly
+google-genai
+pymupdf
+pypdf
+scikit-learn
+xgboost
+darts
+torch
+joblib
+st-gsheets-connection
