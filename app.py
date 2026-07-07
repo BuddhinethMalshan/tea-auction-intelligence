@@ -175,103 +175,129 @@ with tab_home:
         bg_css = f'background: linear-gradient(rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.85)), url("data:image/png;base64,{bin_str}");'
 
     st.markdown(f'''
-        <style>
-        /* Background & Overlay */
-        .stApp {{
-            {bg_css}
-            background-size: cover;
-            background-attachment: fixed;
-        }}
-        
-        .main {{
-            background-color: rgba(0, 0, 0, 0.85); 
-            margin: 15px;
-            border-radius: 15px;
-            padding: 25px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }}
+            <style>
+            /* 1. Background & Overlay */
+            .stApp {{
+                {bg_css}
+                background-size: cover;
+                background-attachment: fixed;
+            }}
+            
+            .main {{
+                background-color: rgba(0, 0, 0, 0.85); 
+                margin: 15px;
+                border-radius: 15px;
+                padding: 25px;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }}
 
-        /* Typography */
-        h1, h2, h3, h4, .stMarkdown p {{
-            color: #ffffff !important;
-        }}
+            /* 2. Simplified Safe Typography */
+            h1, h2, h3, .stMarkdown p {{
+                color: #ffffff !important;
+            }}
 
-        /* Metric Colors Fix */
-        [data-testid="stMetricValue"] {{ color: #ffffff !important; }}
-        [data-testid="stMetricDelta"] > div {{ color: inherit !important; }}
-        div[data-testid="stMetricDelta"] > div[data-direction="up"] {{ color: #09ab3b !important; }}
-        div[data-testid="stMetricDelta"] > div[data-direction="down"] {{ color: #ff4b4b !important; }}
+            /* 3. RESPONSIVE METRIC FIX: Prevents Truncation (Rs. 1...) on Laptops */
+            [data-testid="stMetricValue"] {{
+                color: #ffffff !important;
+                font-size: 1.5rem !important; /* Smaller font to fit laptop screens */
+            }}
+            [data-testid="stMetricLabel"] {{
+                font-size: 0.85rem !important;
+                color: #bbbbbb !important;
+                white-space: nowrap !important;
+            }}
+            [data-testid="stMetricDelta"] > div {{
+                color: inherit !important;
+                font-size: 0.9rem !important;
+            }}
+            
+            /* Force Green/Red for Market Trends */
+            div[data-testid="stMetricDelta"] > div[data-direction="up"] {{
+                color: #09ab3b !important; /* Green */
+            }}
+            div[data-testid="stMetricDelta"] > div[data-direction="down"] {{
+                color: #ff4b4b !important; /* Red */
+            }}
 
-        /* Market Coverage Badges */
-        .combo-container {{
-            background-color: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(212, 175, 55, 0.3);
-            border-radius: 12px;
-            padding: 20px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            justify-content: flex-start;
-        }}
-        .combo-badge {{
-            background-color: rgba(0, 0, 0, 0.5);
-            color: #d4af37 !important;
-            border: 1px solid #d4af37;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.72rem;
-            font-weight: 500;
-            white-space: nowrap;
-        }}
+            /* 4. Tab Design */
+            .stTabs [data-baseweb="tab-list"] {{ gap: 8px; }}
+            .stTabs [data-baseweb="tab"] {{
+                background-color: rgba(255, 255, 255, 0.05);
+                border-radius: 4px 4px 0 0;
+                padding: 8px 20px;
+            }}
+            .stTabs [aria-selected="true"] {{
+                background-color: #1e3d2b !important;
+                color: #d4af37 !important;
+                border-bottom: 2px solid #d4af37 !important;
+            }}
 
-        /* Grade Cards (Compact & Hugging Image) */
-        .grade-card {{
-            background-color: rgba(255, 255, 255, 0.05);
-            border-radius: 10px;
-            padding: 12px 15px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            margin-top: 0px; 
-            height: auto;
-            min-height: 220px;
-        }}
-        .grade-header {{ color: #ffffff; font-size: 1.1rem; font-weight: bold; margin-bottom: 2px; }}
-        .grade-full-name {{ font-size: 0.82rem; color: #d4af37; margin-bottom: 8px; font-weight: 500; }}
-        .grade-desc {{ font-size: 0.8rem; color: #bbbbbb; line-height: 1.3; margin-bottom: 12px; }}
-        
-        .region-tag {{
-            background-color: #1e3d2b;
-            color: #d4af37 !important;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 0.65rem;
-            border: 1px solid #d4af37;
-            margin-right: 4px;
-            margin-bottom: 4px;
-            display: inline-block;
-        }}
+            /* 5. Market Coverage Badges */
+            .combo-container {{
+                background-color: rgba(255, 255, 255, 0.03);
+                border: 1px solid rgba(212, 175, 55, 0.3);
+                border-radius: 12px;
+                padding: 20px;
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+            }}
+            .combo-badge {{
+                background-color: rgba(0, 0, 0, 0.5);
+                color: #d4af37 !important;
+                border: 1px solid #d4af37;
+                padding: 4px 12px;
+                border-radius: 20px;
+                font-size: 0.72rem;
+            }}
 
-        /* Image Gap Fix */
-        [data-testid="stImage"] {{
-            margin-bottom: -15px !important;
-        }}
+            /* 6. Grade Cards */
+            .grade-card {{
+                background-color: rgba(255, 255, 255, 0.05);
+                border-radius: 10px;
+                padding: 12px 15px;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                margin-top: 0px;   
+                height: auto;
+                min-height: 220px;
+            }}
+            .grade-header {{ color: #ffffff; font-size: 1.05rem; font-weight: bold; margin: 0px !important; }}
+            .grade-full-name {{ font-size: 0.85rem; color: #d4af37; }}
+            .grade-desc {{ font-size: 0.82rem; color: #cccccc; }}
+            
+            .region-tag {{
+                background-color: #1e3d2b;
+                color: #d4af37 !important;
+                padding: 2px 8px;
+                border-radius: 4px;
+                font-size: 0.65rem;
+                border: 1px solid #d4af37;
+                margin-right: 4px;
+                margin-bottom: 4px;
+                display: inline-block;
+            }}
 
-        /* Professional Minimalist Arrows */
-        div[data-testid="column"] button {{
-            background-color: rgba(255, 255, 255, 0.05) !important;
-            border: 1px solid rgba(255, 255, 255, 0.2) !important;
-            color: #ffffff !important;
-            border-radius: 50% !important;
-            transition: 0.3s;
-            width: 45px !important;
-            height: 45px !important;
-        }}
-        div[data-testid="column"] button:hover {{
-            border-color: #d4af37 !important;
-            color: #d4af37 !important;
-            background-color: rgba(212, 175, 55, 0.1) !important;
-        }}
-        </style>
-        ''', unsafe_allow_html=True)
+            /* 7. Image Gap Fix */
+            [data-testid="stImage"] {{
+                margin-bottom: -15px !important;
+            }}
+
+            /* 8. Minimalist Arrows */
+            div[data-testid="column"] button {{
+                background-color: transparent !important;
+                border: 1px solid rgba(255, 255, 255, 0.2) !important;
+                color: #ffffff !important;
+                border-radius: 50% !important;
+                width: 45px !important;
+                height: 45px !important;
+            }}
+            div[data-testid="column"] button:hover {{
+                border-color: #d4af37 !important;
+                color: #d4af37 !important;
+                background-color: rgba(212, 175, 55, 0.1) !important;
+            }}
+            </style>
+            ''', unsafe_allow_html=True)
 
     # --- 2. ROW 1: MARKET COVERAGE & MAP (Balanced 1.5:1 Ratio) ---
     col_scope, col_map = st.columns([1.5, 1], vertical_alignment="center")
@@ -316,7 +342,7 @@ with tab_home:
         {"name": "BOP", "full": "Broken Orange Pekoe", "img": "assets/grade_bop.jpg", "desc": "Neat, medium broken leaf. Balances strength with bright liquor.", "regions": ["WESTERN HIGH", "WESTERN MEDIUM", "UVA MEDIUM", "LOW GROWNS", "NUWARA ELIYAS", "UDAPUSSELLAWAS", "UVA HIGH"]},
         {"name": "BOPF / BOPFSP", "full": "BOP Fannings / Special", "img": "assets/grade_bopfsp.jpg", "desc": "Fine grain fannings. Quick brewing with intense brightness.", "regions": ["UVA MEDIUM", "WESTERN HIGH", "WESTERN MEDIUM", "NUWARA ELIYAS", "UDAPUSSELLAWAS", "UVA HIGH", "LOW GROWNS"]},
         {"name": "FBOP / FBOP1", "full": "Flowery Broken Orange Pekoe", "img": "assets/grade_fbop.jpg", "desc": "Leafy grade with tips. Provides rich aroma and sweetness.", "regions": ["UDAPUSSELLAWAS", "UVA MEDIUM", "WESTERN HIGH", "WESTERN MEDIUM", "UVA HIGH", "LOW GROWNS"]},
-        # {"name": "OP1", "full": "Orange Pekoe 1", "img": "assets/grade_op1.jpg", "desc": "Long, wiry specialty leaf. Delivers a smooth, honey-like liquor.", "regions": ["UVA MEDIUM", "WESTERN HIGH", "UVA HIGH", "LOW GROWNS", "WESTERN MEDIUM"]},
+        {"name": "OP1", "full": "Orange Pekoe 1", "img": "assets/grade_op1.jpg", "desc": "Long, wiry specialty leaf. Delivers a smooth, honey-like liquor.", "regions": ["UVA MEDIUM", "WESTERN HIGH", "UVA HIGH", "LOW GROWNS", "WESTERN MEDIUM"]},
         {"name": "PEK / PEK1", "full": "Pekoe / Pekoe 1", "img": "assets/grade_pek.jpg", "desc": "Curly, shotty style. High thickness and infusion depth.", "regions": ["UVA MEDIUM", "WESTERN HIGH", "UVA HIGH", "NUWARA ELIYAS", "UDAPUSSELLAWAS", "WESTERN MEDIUM", "LOW GROWNS"]},
         {"name": "OP / OPA", "full": "Orange Pekoe / Orange Pekoe A", "img": "assets/grade_op.jpg", "desc": "Bold, large leaf. Mild liquor popular in European tea markets.", "regions": ["UVA MEDIUM", "WESTERN HIGH", "WESTERN MEDIUM", "UVA HIGH", "UDAPUSSELLAWAS"]},
         {"name": "BOP1", "full": "Broken Orange Pekoe 1", "img": "assets/grade_bop1.jpg", "desc": "Wiry, shorter than OP1. Known for refined appearance.", "regions": ["UVA MEDIUM", "WESTERN MEDIUM", "LOW GROWNS", "UVA HIGH", "WESTERN HIGH"]}
@@ -437,9 +463,11 @@ with tab_dash:
                         f4 = latest_f_row[f4_m[0]] if f4_m else None
 
             # --- STEP 3: RENDER KPI METRICS ---
-            # --- STEP 3: RENDER KPI METRICS (Color Optimized) ---
+            # --- STEP 3: RENDER KPI METRICS (Thousand Sep & Unit Optimized) ---
             k_cols = st.columns(3)
-            k_cols[0].metric("Current", f"Rs. {latest_price:.0f}")
+            
+            # Thousand separator applied to current price
+            k_cols[0].metric("Current (Rs/kg)", f"{latest_price:,.0f}")
             
             if f1:
                 # Calculate Percentage Changes
@@ -447,24 +475,23 @@ with tab_dash:
                 pct_4w = ((f4 - latest_price) / latest_price) * 100 if latest_price > 0 and f4 else 0
 
                 # Card 1: 1-Week Forecast
-                # normal color = green for positive, red for negative
                 k_cols[1].metric(
-                    label="Next Week", 
-                    value=f"Rs. {f1:.0f}", 
+                    label="Next Week (Rs/kg)", 
+                    value=f"{f1:,.0f}", 
                     delta=f"{pct_1w:+.2f}%",
                     delta_color="normal" 
                 )
                 
                 # Card 2: 4-Week Forecast
                 k_cols[2].metric(
-                    label="Forecast (4W)", 
-                    value=f"Rs. {f4:.0f}" if f4 else "N/A", 
+                    label="Forecast (4W) (Rs/kg)", 
+                    value=f"{f4:,.0f}" if f4 else "N/A", 
                     delta=f"{pct_4w:+.2f}%" if f4 else None,
                     delta_color="normal"
                 )
             else:
-                k_cols[1].metric("Next Week", "N/A")
-                k_cols[2].metric("Forecast", "N/A")
+                k_cols[1].metric("Next Week (Rs/kg)", "N/A")
+                k_cols[2].metric("Forecast (4W) (Rs/kg)", "N/A")
 
             # --- STEP 4: RENDER CHART ---
             fig = px.line(series_df, x='true_date', y='price', title=f"{reg} - {grd}")
@@ -701,4 +728,4 @@ with tab_pred:
 
                         # --- ADD THIS LINE TO FIX AUTO-UPDATE ---
                         st.rerun() 
-                        # ----------------------------------------                       
+                        # ----------------------------------------
