@@ -79,23 +79,16 @@ def set_design():
         }}
         div[role="listbox"] ul {{ background-color: #1a1c23 !important; color: white !important; }}
 
-        /* 6. CAROUSEL ARROWS - FINAL STICKY WHITE BOX REMOVAL */
+        /* 6. Carousel Arrows Fix */
         div[data-testid="stHorizontalBlock"] button {{
             background-color: transparent !important;
             border: none !important;
             color: #d4af37 !important;
             font-size: 45px !important;
             box-shadow: none !important;
-            outline: none !important;
-        }}
-        div[data-testid="stHorizontalBlock"] button:hover, div[data-testid="stHorizontalBlock"] button:focus {{
-            color: #ffffff !important;
-            background-color: transparent !important;
-            border: none !important;
-            box-shadow: none !important;
         }}
 
-        /* 7. Plotly Chart Container */
+        /* 7. Plotly Container Transparency */
         .stPlotlyChart {{ background-color: transparent !important; }}
 
         /* 8. Tab Design */
@@ -123,14 +116,31 @@ def set_design():
             height: auto;
         }}
 
-        /* 11. System Cleanup */
+        /* 11. FILE UPLOADER & BROWSE BUTTON FIX */
+        [data-testid="stFileUploader"] {{
+            background-color: rgba(255, 255, 255, 0.05) !important;
+            padding: 15px !important;
+            border-radius: 10px !important;
+            border: 1px dashed rgba(212, 175, 55, 0.5) !important;
+        }}
+        /* Specifically targeting the white "Browse files" button */
+        [data-testid="stFileUploader"] button {{
+            background-color: #d4af37 !important;
+            color: #000000 !important;
+            border: none !important;
+            font-weight: bold !important;
+        }}
+        [data-testid="stFileUploader"] section {{
+            background-color: transparent !important;
+            color: #ffffff !important;
+        }}
+
+        /* 12. System Cleanup */
         header {{visibility: hidden;}}
         footer {{visibility: hidden;}}
         [data-testid="stImage"] {{ margin-bottom: -15px !important; }}
         </style>
         ''', unsafe_allow_html=True)
-
-set_design()
 
 # --- 4. IMPORTS ---
 from utils.sheets_handler import get_merged_data, save_to_gsheet
@@ -435,7 +445,7 @@ with tab_dash:
 
             # B. Priority 2: Check Database (History from Google Sheet)
             if f1 is None:
-                # Standard database names are forecast_1w, forecast_2w, forecast_4w
+                # Search for any columns containing these keywords in the merged dataframe
                 db_f_cols = [c for c in series_df.columns if 'forecast' in c.lower() or 'pred' in c.lower()]
                 if db_f_cols:
                     history_forecasts = series_df.dropna(subset=[db_f_cols[0]])
@@ -447,13 +457,12 @@ with tab_dash:
                         f2 = latest_f_row[f2_m[0]] if f2_m else None
                         f4 = latest_f_row[f4_m[0]] if f4_m else None
 
-            # --- STEP 3: RENDER KPI METRICS (Thousand Sep & Unit Optimized) ---
+            # --- STEP 3: RENDER KPI METRICS (Thousand Sep, Unit Labels & Theme Colors) ---
             k_cols = st.columns(3)
-            # Current Price with Thousand Separator and Rs/kg Unit
+            # Value formatted with thousand separator, Unit moved to Label
             k_cols[0].metric("Current (Rs/kg)", f"{latest_price:,.0f}")
             
             if f1:
-                # Calculate Percentage Changes
                 pct_1w = ((f1 - latest_price) / latest_price) * 100 if latest_price > 0 else 0
                 pct_4w = ((f4 - latest_price) / latest_price) * 100 if latest_price > 0 and f4 else 0
 
@@ -476,15 +485,21 @@ with tab_dash:
                 k_cols[1].metric("Next Week (Rs/kg)", "N/A")
                 k_cols[2].metric("Forecast (4W) (Rs/kg)", "N/A")
 
-            # --- STEP 4: RENDER CHART ---
-            # Using plotly_dark template
+            # --- STEP 4: RENDER CHART (Complete UX Feature Set) ---
             fig = px.line(series_df, x='true_date', y='price', title=f"{reg} - {grd}", template="plotly_dark")
-            fig.update_traces(line=dict(color=color, width=2.5), name="Actual Price", showlegend=True)
+            
+            # Hover Fix for Actual Price: Pure white text on dark background, removes "Actual Price" label
+            fig.update_traces(
+                line=dict(color=color, width=2.5), 
+                name="Actual Price", 
+                showlegend=True,
+                hovertemplate="<b>%{x|%b %d, %Y}</b><br>Price: Rs. %{y:,.0f}<extra></extra>"
+            )
             
             # Mute Grid Lines (0.05 opacity) to keep focus on price trends
             grid_style = dict(showgrid=True, gridwidth=1, gridcolor='rgba(255, 255, 255, 0.05)', zeroline=False)
 
-            # 1. 2022 Gap Removal, Grid Styling & Tick Fonts
+            # 1. 2022 Gap Removal, Grid Styling & Tick Formatting
             fig.update_xaxes(
                 **grid_style,
                 rangebreaks=[dict(values=pd.date_range("2022-01-01", "2022-12-31"))],
@@ -497,39 +512,38 @@ with tab_dash:
             last_dt_in_data = series_df['true_date'].max()
             fig.update_xaxes(range=[last_dt_in_data - pd.DateOffset(months=6), last_dt_in_data + pd.Timedelta(weeks=6)])
 
-            # 3. HISTORICAL FORECAST DOTS (Show previous model performance)
+            # 3. HISTORICAL FORECAST DOTS (Previous Model Performance)
             db_f_cols = [c for c in series_df.columns if 'forecast' in c.lower() or 'pred' in c.lower()]
             if db_f_cols:
                 fig.add_scatter(x=series_df['true_date'], y=series_df[db_f_cols[0]], 
                                 mode='markers', name='Saved Forecasts', 
-                                marker=dict(color='orange', size=3.5, opacity=0.4))
+                                marker=dict(color='orange', size=3.5, opacity=0.4),
+                                hovertemplate="<b>%{x|%b %d, %Y}</b><br>Prev. Forecast: Rs. %{y:,.0f}<extra></extra>")
 
-            # 4. FUTURE FORECAST PATH (Connecting 1W, 2W, 4W)
+            # 4. FUTURE FORECAST PATH (Connecting Actuals to 1W, 2W, 4W)
             if f1:
-                # Construct the trajectory path sequence
                 path_dates = [last_actual_date, last_actual_date + pd.Timedelta(weeks=1)]
                 path_prices = [latest_price, f1]
                 if f2:
-                    path_dates.append(last_actual_date + pd.Timedelta(weeks=2))
-                    path_prices.append(f2)
+                    path_dates.append(last_actual_date + pd.Timedelta(weeks=2)); path_prices.append(f2)
                 if f4:
-                    path_dates.append(last_actual_date + pd.Timedelta(weeks=4))
-                    path_prices.append(f4)
+                    path_dates.append(last_actual_date + pd.Timedelta(weeks=4)); path_prices.append(f4)
                 
                 fig.add_scatter(x=path_dates, y=path_prices, mode='lines+markers', 
                                 name='Forecast Path', 
                                 line=dict(dash='dash', color='#FFD700', width=3),
-                                marker=dict(size=9, color='#FFD700', symbol='diamond'))
+                                marker=dict(size=9, color='#FFD700', symbol='diamond'),
+                                hovertemplate="<b>%{x|%b %d, %Y}</b><br>Ensemble Forecast: Rs. %{y:,.0f}<extra></extra>")
 
-            # 5. UI LAYOUT & VISIBILITY (Theme Lock & Hover Contrast)
+            # 5. UI LAYOUT, TRANSPARENCY & HOVER VISIBILITY
             fig.update_layout(
                 paper_bgcolor='rgba(0,0,0,0)',
                 plot_bgcolor='rgba(0,0,0,0)',
-                font=dict(color="#ffffff"), # Force Pure White font for all text
+                font=dict(color="#ffffff"), 
                 title_font=dict(size=14, color="#d4af37"),
                 margin=dict(l=0, r=0, t=40, b=0),
                 height=450,
-                # Legend Fix: Ensure text is white and background is transparent
+                # Legend Visibility Fix: Forces white text
                 legend=dict(
                     orientation="h", 
                     yanchor="bottom", 
@@ -539,7 +553,7 @@ with tab_dash:
                     font=dict(color="white", size=10),
                     bgcolor="rgba(0,0,0,0)"
                 ),
-                # Hover Box Fix: Force dark background and white text for high contrast
+                # Hover Box Fix: Forces dark background and white text for high contrast on all devices
                 hoverlabel=dict(
                     bgcolor="#1a1c23", 
                     font_size=12,
