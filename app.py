@@ -42,46 +42,66 @@ def set_design():
 
     st.markdown(f'''
         <style>
-        /* 1. Background & Overlay */
+        /* 1. Full Screen Background Overlay */
         .stApp {{
             {bg_css}
             background-size: cover;
             background-attachment: fixed;
         }}
         
-        .main {{
-            background-color: rgba(0, 0, 0, 0.85); 
-            margin: 15px;
+        /* 2. Main Container (Glassmorphism Layer) */
+        /* This forces a dark stage so white text is always visible regardless of browser theme */
+        .main .block-container {{
+            background-color: rgba(0, 0, 0, 0.75); 
+            margin-top: 20px;
+            margin-bottom: 20px;
             border-radius: 15px;
-            padding: 25px;
+            padding: 30px !important;
             border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
         }}
 
-        /* 2. Simplified Safe Typography (No longer blocks Green/Red) */
-        h1, h2, h3, .stMarkdown p {{
+        /* 3. Typography - Forced White for high contrast in Light Mode */
+        h1, h2, h3, h4, p, span, label, .stMarkdown p {{
             color: #ffffff !important;
         }}
 
-        /* 3. METRIC COLOR FIX: Force Green/Red for Market Trends */
+        /* 4. Metric Formatting Fix (Thousand Sep & Resolution Fix) */
         [data-testid="stMetricValue"] {{
             color: #ffffff !important;
+            font-size: 1.6rem !important;
         }}
-        [data-testid="stMetricDelta"] > div {{
-            color: inherit !important;
+        [data-testid="stMetricLabel"] {{
+            color: #bbbbbb !important;
+            font-size: 0.85rem !important;
+            white-space: nowrap !important;
         }}
-        div[data-testid="stMetricDelta"] > div[data-direction="up"] {{
-            color: #09ab3b !important; /* Green */
+        
+        /* Delta Colors (Force Green/Red) */
+        [data-testid="stMetricDelta"] > div {{ color: inherit !important; }}
+        div[data-testid="stMetricDelta"] > div[data-direction="up"] {{ color: #00ff00 !important; }}
+        div[data-testid="stMetricDelta"] > div[data-direction="down"] {{ color: #ff4b4b !important; }}
+
+        /* 5. Selectbox / Dropdown Fix (Crucial for Light Mode) */
+        /* This forces the dropdown boxes to be dark so they don't turn white/black */
+        div[data-baseweb="select"] > div {{
+            background-color: rgba(255, 255, 255, 0.1) !important;
+            border: 1px solid rgba(212, 175, 55, 0.5) !important;
+            color: white !important;
         }}
-        div[data-testid="stMetricDelta"] > div[data-direction="down"] {{
-            color: #ff4b4b !important; /* Red */
+        /* Style the dropdown list items */
+        div[role="listbox"] ul {{
+            background-color: #1a1c23 !important;
+            color: white !important;
         }}
 
-        /* 4. Tab Design */
+        /* 6. Tab Design */
         .stTabs [data-baseweb="tab-list"] {{ gap: 8px; }}
         .stTabs [data-baseweb="tab"] {{
             background-color: rgba(255, 255, 255, 0.05);
             border-radius: 4px 4px 0 0;
             padding: 8px 20px;
+            color: #dddddd !important;
         }}
         .stTabs [aria-selected="true"] {{
             background-color: #1e3d2b !important;
@@ -89,7 +109,7 @@ def set_design():
             border-bottom: 2px solid #d4af37 !important;
         }}
 
-        /* 5. Market Coverage Badges */
+        /* 7. Market Coverage Badges */
         .combo-container {{
             background-color: rgba(255, 255, 255, 0.03);
             border: 1px solid rgba(212, 175, 55, 0.3);
@@ -108,17 +128,17 @@ def set_design():
             font-size: 0.72rem;
         }}
 
-        /* 6. Grade Cards */
+        /* 8. Grade Cards (Hugging Image) */
         .grade-card {{
             background-color: rgba(255, 255, 255, 0.05);
             border-radius: 10px;
-            padding: 12px 15px; /* Reduced padding */
+            padding: 12px 15px;
             border: 1px solid rgba(255, 255, 255, 0.1);
-            margin-top: -10px;   /* Pulls card closer to the image */
-            min-height: 220px;   /* Reduced min-height */
+            margin-top: -10px; 
             height: auto;
+            min-height: 220px;
         }}
-        .grade-header {{ color: #ffffff; font-size: 1.05rem; font-weight: bold; margin: 0px !important; /* Remove default margins */}}
+        .grade-header {{ color: #ffffff; font-size: 1.05rem; font-weight: bold; margin: 0px !important; }}
         .grade-full-name {{ font-size: 0.85rem; color: #d4af37; }}
         .grade-desc {{ font-size: 0.82rem; color: #cccccc; }}
         
@@ -131,7 +151,7 @@ def set_design():
             border: 1px solid #d4af37;
         }}
 
-        /* 7. Minimalist Arrows */
+        /* 9. Minimalist Arrows */
         div[data-testid="column"] button {{
             background-color: transparent !important;
             border: 1px solid rgba(255, 255, 255, 0.2) !important;
@@ -142,6 +162,11 @@ def set_design():
             border-color: #d4af37 !important;
             color: #d4af37 !important;
         }}
+
+        /* 10. System Cleanup */
+        header {{visibility: hidden;}}
+        footer {{visibility: hidden;}}
+        [data-testid="stImage"] {{ margin-bottom: -15px !important; }}
         </style>
         ''', unsafe_allow_html=True)
 
@@ -342,7 +367,7 @@ with tab_home:
         {"name": "BOP", "full": "Broken Orange Pekoe", "img": "assets/grade_bop.jpg", "desc": "Neat, medium broken leaf. Balances strength with bright liquor.", "regions": ["WESTERN HIGH", "WESTERN MEDIUM", "UVA MEDIUM", "LOW GROWNS", "NUWARA ELIYAS", "UDAPUSSELLAWAS", "UVA HIGH"]},
         {"name": "BOPF / BOPFSP", "full": "BOP Fannings / Special", "img": "assets/grade_bopfsp.jpg", "desc": "Fine grain fannings. Quick brewing with intense brightness.", "regions": ["UVA MEDIUM", "WESTERN HIGH", "WESTERN MEDIUM", "NUWARA ELIYAS", "UDAPUSSELLAWAS", "UVA HIGH", "LOW GROWNS"]},
         {"name": "FBOP / FBOP1", "full": "Flowery Broken Orange Pekoe", "img": "assets/grade_fbop.jpg", "desc": "Leafy grade with tips. Provides rich aroma and sweetness.", "regions": ["UDAPUSSELLAWAS", "UVA MEDIUM", "WESTERN HIGH", "WESTERN MEDIUM", "UVA HIGH", "LOW GROWNS"]},
-        {"name": "OP1", "full": "Orange Pekoe 1", "img": "assets/grade_op1.jpg", "desc": "Long, wiry specialty leaf. Delivers a smooth, honey-like liquor.", "regions": ["UVA MEDIUM", "WESTERN HIGH", "UVA HIGH", "LOW GROWNS", "WESTERN MEDIUM"]},
+        # {"name": "OP1", "full": "Orange Pekoe 1", "img": "assets/grade_op1.jpg", "desc": "Long, wiry specialty leaf. Delivers a smooth, honey-like liquor.", "regions": ["UVA MEDIUM", "WESTERN HIGH", "UVA HIGH", "LOW GROWNS", "WESTERN MEDIUM"]},
         {"name": "PEK / PEK1", "full": "Pekoe / Pekoe 1", "img": "assets/grade_pek.jpg", "desc": "Curly, shotty style. High thickness and infusion depth.", "regions": ["UVA MEDIUM", "WESTERN HIGH", "UVA HIGH", "NUWARA ELIYAS", "UDAPUSSELLAWAS", "WESTERN MEDIUM", "LOW GROWNS"]},
         {"name": "OP / OPA", "full": "Orange Pekoe / Orange Pekoe A", "img": "assets/grade_op.jpg", "desc": "Bold, large leaf. Mild liquor popular in European tea markets.", "regions": ["UVA MEDIUM", "WESTERN HIGH", "WESTERN MEDIUM", "UVA HIGH", "UDAPUSSELLAWAS"]},
         {"name": "BOP1", "full": "Broken Orange Pekoe 1", "img": "assets/grade_bop1.jpg", "desc": "Wiry, shorter than OP1. Known for refined appearance.", "regions": ["UVA MEDIUM", "WESTERN MEDIUM", "LOW GROWNS", "UVA HIGH", "WESTERN HIGH"]}
