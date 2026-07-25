@@ -49,7 +49,7 @@ def set_design():
             background-attachment: fixed;
         }}
         
-        /* 2. Main Container (Glassmorphism) */
+        /* 2. Main Container */
         .main .block-container {{
             background-color: rgba(0, 0, 0, 0.75); 
             margin-top: 20px;
@@ -58,13 +58,13 @@ def set_design():
             border: 1px solid rgba(255, 255, 255, 0.1);
         }}
 
-        /* 3. Global Typography & Dropdown Labels */
+        /* 3. Global Typography & Labels */
         h1, h2, h3, h4, p, span, label, [data-testid="stWidgetLabel"] p {{
             color: #ffffff !important;
             font-weight: 500 !important;
         }}
 
-        /* 4. Metric Formatting (Thousand Sep & Resolution Fix) */
+        /* 4. Metric Formatting */
         [data-testid="stMetricValue"] {{ color: #ffffff !important; font-size: 1.6rem !important; }}
         [data-testid="stMetricLabel"] {{ color: #bbbbbb !important; font-size: 0.85rem !important; }}
         [data-testid="stMetricDelta"] > div {{ color: inherit !important; }}
@@ -85,7 +85,6 @@ def set_design():
             border: none !important;
             color: #d4af37 !important;
             font-size: 45px !important;
-            box-shadow: none !important;
         }}
 
         /* 7. Plotly Container Transparency */
@@ -112,30 +111,47 @@ def set_design():
         .grade-card {{
             background-color: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            margin-top: 0px; 
             height: auto;
         }}
 
-        /* 11. FILE UPLOADER & BROWSE BUTTON FIX */
+        /* 11. FILE UPLOADER DARK FIX (Aggressive override for white bar) */
         [data-testid="stFileUploader"] {{
-            background-color: rgba(255, 255, 255, 0.05) !important;
-            padding: 15px !important;
-            border-radius: 10px !important;
-            border: 1px dashed rgba(212, 175, 55, 0.5) !important;
+            background-color: rgba(0, 0, 0, 0.4) !important;
+            border: 1px dashed #d4af37 !important;
+            border-radius: 10px;
         }}
-        /* Specifically targeting the white "Browse files" button */
+        [data-testid="stFileUploaderDropzone"] {{
+            background-color: rgba(255, 255, 255, 0.05) !important;
+            color: white !important;
+        }}
+        /* Force the button inside the uploader to be Gold */
         [data-testid="stFileUploader"] button {{
             background-color: #d4af37 !important;
             color: #000000 !important;
-            border: none !important;
-            font-weight: bold !important;
-        }}
-        [data-testid="stFileUploader"] section {{
-            background-color: transparent !important;
-            color: #ffffff !important;
+            border-radius: 5px !important;
         }}
 
-        /* 12. System Cleanup */
+        /* 12. DATA EDITOR (GRID) FINAL THEME LOCK */
+        /* This kills the white grid background in Light Mode */
+        div[data-testid="stDataEditor"] > div {{
+            background-color: #1a1c23 !important;
+        }}
+        .ag-theme-streamlit {{
+            --ag-background-color: #1a1c23 !important;
+            --ag-header-background-color: #0e1117 !important;
+            --ag-odd-row-background-color: #1a1c23 !important;
+            --ag-header-foreground-color: #d4af37 !important;
+            --ag-foreground-color: #ffffff !important;
+        }}
+
+        /* 13. SOLID ACTION BUTTONS (Confirm, Re-process, etc.) */
+        div.stButton > button:not([key="p_btn"]):not([key="n_btn"]) {{
+            background-color: #1e3d2b !important;
+            color: #d4af37 !important;
+            border: 1px solid #d4af37 !important;
+        }}
+
+        /* 14. System Cleanup */
         header {{visibility: hidden;}}
         footer {{visibility: hidden;}}
         [data-testid="stImage"] {{ margin-bottom: -15px !important; }}
@@ -642,7 +658,7 @@ with tab_pred:
         # --- DATA INTEGRITY GUARD ---
         # If AI failed, force the user to interact with a checkbox to prevent accidental "Today" sync
         if not date_extracted_successfully:
-            st.warning("⚠️ **AI Date Extraction Failed.** The date below is set to 'Today' as a placeholder.")
+            st.warning("⚠️ **Set the date to the report date to continue.** ")
             date_confirmed = st.checkbox("I have manually verified that the Auction Date above is correct.")
         else:
             st.success(f"✅ AI detected Auction Date: {verified_date}")
