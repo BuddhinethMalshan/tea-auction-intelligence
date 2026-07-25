@@ -42,128 +42,88 @@ def set_design():
 
     st.markdown(f'''
         <style>
-        /* 1. Full Screen Background Overlay */
+        /* 1. Global Background Overlay */
         .stApp {{
             {bg_css}
             background-size: cover;
             background-attachment: fixed;
         }}
         
-        /* 2. Main Container (Glassmorphism Layer) */
-        /* This forces a dark stage so white text is always visible regardless of browser theme */
+        /* 2. Main Container (Glassmorphism) */
         .main .block-container {{
             background-color: rgba(0, 0, 0, 0.75); 
             margin-top: 20px;
-            margin-bottom: 20px;
             border-radius: 15px;
             padding: 30px !important;
             border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
         }}
 
-        /* 3. Typography - Forced White for high contrast in Light Mode */
-        h1, h2, h3, h4, p, span, label, .stMarkdown p {{
+        /* 3. Global Typography & Dropdown Labels */
+        h1, h2, h3, h4, p, span, label, [data-testid="stWidgetLabel"] p {{
             color: #ffffff !important;
+            font-weight: 500 !important;
         }}
 
-        /* 4. Metric Formatting Fix (Thousand Sep & Resolution Fix) */
-        [data-testid="stMetricValue"] {{
-            color: #ffffff !important;
-            font-size: 1.6rem !important;
-        }}
-        [data-testid="stMetricLabel"] {{
-            color: #bbbbbb !important;
-            font-size: 0.85rem !important;
-            white-space: nowrap !important;
-        }}
-        
-        /* Delta Colors (Force Green/Red) */
+        /* 4. Metric Formatting (Thousand Sep & Resolution Fix) */
+        [data-testid="stMetricValue"] {{ color: #ffffff !important; font-size: 1.6rem !important; }}
+        [data-testid="stMetricLabel"] {{ color: #bbbbbb !important; font-size: 0.85rem !important; }}
         [data-testid="stMetricDelta"] > div {{ color: inherit !important; }}
         div[data-testid="stMetricDelta"] > div[data-direction="up"] {{ color: #00ff00 !important; }}
         div[data-testid="stMetricDelta"] > div[data-direction="down"] {{ color: #ff4b4b !important; }}
 
-        /* 5. Selectbox / Dropdown Fix (Crucial for Light Mode) */
-        /* This forces the dropdown boxes to be dark so they don't turn white/black */
+        /* 5. Selectbox / Dropdown Fix */
         div[data-baseweb="select"] > div {{
-            background-color: rgba(255, 255, 255, 0.1) !important;
-            border: 1px solid rgba(212, 175, 55, 0.5) !important;
+            background-color: rgba(255, 255, 255, 0.05) !important;
             color: white !important;
+            border: 1px solid rgba(212, 175, 55, 0.3) !important;
         }}
-        /* Style the dropdown list items */
-        div[role="listbox"] ul {{
-            background-color: #1a1c23 !important;
-            color: white !important;
+        div[role="listbox"] ul {{ background-color: #1a1c23 !important; color: white !important; }}
+
+        /* 6. CAROUSEL ARROWS - FINAL STICKY WHITE BOX REMOVAL */
+        div[data-testid="stHorizontalBlock"] button {{
+            background-color: transparent !important;
+            border: none !important;
+            color: #d4af37 !important;
+            font-size: 45px !important;
+            box-shadow: none !important;
+            outline: none !important;
+        }}
+        div[data-testid="stHorizontalBlock"] button:hover, div[data-testid="stHorizontalBlock"] button:focus {{
+            color: #ffffff !important;
+            background-color: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
         }}
 
-        /* 6. Tab Design */
-        .stTabs [data-baseweb="tab-list"] {{ gap: 8px; }}
+        /* 7. Plotly Chart Container */
+        .stPlotlyChart {{ background-color: transparent !important; }}
+
+        /* 8. Tab Design */
         .stTabs [data-baseweb="tab"] {{
-            background-color: rgba(255, 255, 255, 0.05);
-            border-radius: 4px 4px 0 0;
-            padding: 8px 20px;
-            color: #dddddd !important;
+            background-color: transparent !important;
+            color: #aaaaaa !important;
         }}
         .stTabs [aria-selected="true"] {{
             background-color: #1e3d2b !important;
             color: #d4af37 !important;
-            border-bottom: 2px solid #d4af37 !important;
         }}
 
-        /* 7. Market Coverage Badges */
-        .combo-container {{
-            background-color: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(212, 175, 55, 0.3);
-            border-radius: 12px;
-            padding: 20px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }}
+        /* 9. Market Coverage Badges */
         .combo-badge {{
             background-color: rgba(0, 0, 0, 0.5);
             color: #d4af37 !important;
             border: 1px solid #d4af37;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.72rem;
         }}
 
-        /* 8. Grade Cards (Hugging Image) */
+        /* 10. Grade Cards */
         .grade-card {{
             background-color: rgba(255, 255, 255, 0.05);
-            border-radius: 10px;
-            padding: 12px 15px;
             border: 1px solid rgba(255, 255, 255, 0.1);
-            margin-top: -10px; 
+            margin-top: 0px; 
             height: auto;
-            min-height: 220px;
-        }}
-        .grade-header {{ color: #ffffff; font-size: 1.05rem; font-weight: bold; margin: 0px !important; }}
-        .grade-full-name {{ font-size: 0.85rem; color: #d4af37; }}
-        .grade-desc {{ font-size: 0.82rem; color: #cccccc; }}
-        
-        .region-tag {{
-            background-color: #1e3d2b;
-            color: #d4af37 !important;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 0.65rem;
-            border: 1px solid #d4af37;
         }}
 
-        /* 9. Minimalist Arrows */
-        div[data-testid="column"] button {{
-            background-color: transparent !important;
-            border: 1px solid rgba(255, 255, 255, 0.2) !important;
-            color: #ffffff !important;
-            border-radius: 50% !important;
-        }}
-        div[data-testid="column"] button:hover {{
-            border-color: #d4af37 !important;
-            color: #d4af37 !important;
-        }}
-
-        /* 10. System Cleanup */
+        /* 11. System Cleanup */
         header {{visibility: hidden;}}
         footer {{visibility: hidden;}}
         [data-testid="stImage"] {{ margin-bottom: -15px !important; }}
@@ -437,7 +397,7 @@ with tab_dash:
             reg = st.selectbox(f"Region", sorted(elev_df['region'].unique()), key=f"r_{elev}")
             grd = st.selectbox(f"Grade", sorted(elev_df[elev_df['region'] == reg]['grade'].unique()), key=f"g_{elev}")
             
-            # 2. Extract specific series
+            # 2. Extract specific series (Merged History CSV + Cloud GSheet)
             series_df = elev_df[(elev_df['region'] == reg) & (elev_df['grade'] == grd)].sort_values('true_date')
             
             if series_df.empty:
@@ -445,6 +405,7 @@ with tab_dash:
                 return
 
             # --- STEP 1: FIND LATEST ACTUAL PRICE ---
+            # Dropping NaNs ensures we find the last date an actual price was recorded
             actuals = series_df.dropna(subset=['price'])
             if not actuals.empty:
                 latest_price = actuals['price'].iloc[-1]
@@ -452,16 +413,16 @@ with tab_dash:
             else:
                 latest_price, last_actual_date = 0, series_df['true_date'].iloc[0]
 
-            # --- STEP 2: FIND FORECASTS (LIVE SESSION OR DATABASE) ---
+            # --- STEP 2: FIND FORECASTS (PRIORITY: LIVE SESSION > DATABASE) ---
             f1, f2, f4 = None, None, None
             
-            # A. Priority 1: Check Live Session (Tab 3 was just run)
+            # A. Priority 1: Check Live Session (Tab 3 results)
             if 'final_results' in st.session_state:
                 res = st.session_state.final_results
                 r_col = [c for c in res.columns if c.lower() == 'region'][0]
                 g_col = [c for c in res.columns if c.lower() == 'grade'][0]
                 
-                # Find the specific columns for 1W, 2W, 4W based on keywords
+                # Flexible column matching to find 1W, 2W, 4W forecasts
                 f1_cols = [c for c in res.columns if '1w' in c.lower() or 'forecast' in c.lower()]
                 f2_cols = [c for c in res.columns if '2w' in c.lower()]
                 f4_cols = [c for c in res.columns if '4w' in c.lower()]
@@ -472,26 +433,23 @@ with tab_dash:
                     f2 = match[f2_cols[0]].iloc[0] if f2_cols else None
                     f4 = match[f4_cols[0]].iloc[0] if f4_cols else None
 
-            # B. Priority 2: Check Database (Loaded from GSheet history)
+            # B. Priority 2: Check Database (History from Google Sheet)
             if f1 is None:
+                # Standard database names are forecast_1w, forecast_2w, forecast_4w
                 db_f_cols = [c for c in series_df.columns if 'forecast' in c.lower() or 'pred' in c.lower()]
                 if db_f_cols:
-                    # Look for the last row that HAS a forecast saved
                     history_forecasts = series_df.dropna(subset=[db_f_cols[0]])
                     if not history_forecasts.empty:
                         latest_f_row = history_forecasts.iloc[-1]
                         f1 = latest_f_row[db_f_cols[0]]
-                        # Match 2w/4w by name
                         f2_m = [c for c in db_f_cols if '2w' in c.lower()]
                         f4_m = [c for c in db_f_cols if '4w' in c.lower()]
                         f2 = latest_f_row[f2_m[0]] if f2_m else None
                         f4 = latest_f_row[f4_m[0]] if f4_m else None
 
-            # --- STEP 3: RENDER KPI METRICS ---
             # --- STEP 3: RENDER KPI METRICS (Thousand Sep & Unit Optimized) ---
             k_cols = st.columns(3)
-            
-            # Thousand separator applied to current price
+            # Current Price with Thousand Separator and Rs/kg Unit
             k_cols[0].metric("Current (Rs/kg)", f"{latest_price:,.0f}")
             
             if f1:
@@ -519,29 +477,36 @@ with tab_dash:
                 k_cols[2].metric("Forecast (4W) (Rs/kg)", "N/A")
 
             # --- STEP 4: RENDER CHART ---
-            fig = px.line(series_df, x='true_date', y='price', title=f"{reg} - {grd}")
-            fig.update_traces(line=dict(color=color, width=2), name="Market Price", showlegend=True)
+            # Using plotly_dark template
+            fig = px.line(series_df, x='true_date', y='price', title=f"{reg} - {grd}", template="plotly_dark")
+            fig.update_traces(line=dict(color=color, width=2.5), name="Actual Price", showlegend=True)
             
-            # 1. 2022 Gap Removal
-            fig.update_xaxes(rangebreaks=[dict(values=pd.date_range("2022-01-01", "2022-12-31"))])
-            
-            # 2. Horizontal Scroll Bar (Range Slider)
-            fig.update_xaxes(rangeslider_visible=True)
+            # Mute Grid Lines (0.05 opacity) to keep focus on price trends
+            grid_style = dict(showgrid=True, gridwidth=1, gridcolor='rgba(255, 255, 255, 0.05)', zeroline=False)
 
-            # 3. Default Zoom (Last 6 Months + Forecast window)
+            # 1. 2022 Gap Removal, Grid Styling & Tick Fonts
+            fig.update_xaxes(
+                **grid_style,
+                rangebreaks=[dict(values=pd.date_range("2022-01-01", "2022-12-31"))],
+                rangeslider_visible=True,
+                tickfont=dict(color="#cccccc")
+            )
+            fig.update_yaxes(**grid_style, tickfont=dict(color="#cccccc"))
+
+            # 2. Default Zoom (Last 6 Months + room for forecast window)
             last_dt_in_data = series_df['true_date'].max()
             fig.update_xaxes(range=[last_dt_in_data - pd.DateOffset(months=6), last_dt_in_data + pd.Timedelta(weeks=6)])
 
-            # 4. HISTORICAL FORECAST DOTS (Restored Feature)
-            # Shows orange dots where the model made predictions in the past
+            # 3. HISTORICAL FORECAST DOTS (Show previous model performance)
             db_f_cols = [c for c in series_df.columns if 'forecast' in c.lower() or 'pred' in c.lower()]
             if db_f_cols:
                 fig.add_scatter(x=series_df['true_date'], y=series_df[db_f_cols[0]], 
-                                mode='markers', name='Past Forecasts', 
-                                marker=dict(color='orange', size=3, opacity=0.4))
+                                mode='markers', name='Saved Forecasts', 
+                                marker=dict(color='orange', size=3.5, opacity=0.4))
 
-            # 5. FUTURE FORECAST PATH (Connecting Live/Saved Forecasts)
+            # 4. FUTURE FORECAST PATH (Connecting 1W, 2W, 4W)
             if f1:
+                # Construct the trajectory path sequence
                 path_dates = [last_actual_date, last_actual_date + pd.Timedelta(weeks=1)]
                 path_prices = [latest_price, f1]
                 if f2:
@@ -553,14 +518,34 @@ with tab_dash:
                 
                 fig.add_scatter(x=path_dates, y=path_prices, mode='lines+markers', 
                                 name='Forecast Path', 
-                                line=dict(dash='dash', color="#FF7B00", width=3),
-                                marker=dict(size=10, color="#FF4D00", symbol='diamond'))
+                                line=dict(dash='dash', color='#FFD700', width=3),
+                                marker=dict(size=9, color='#FFD700', symbol='diamond'))
 
-            # 6. UI Layout Cleanup
+            # 5. UI LAYOUT & VISIBILITY (Theme Lock & Hover Contrast)
             fig.update_layout(
-                height=450,
+                paper_bgcolor='rgba(0,0,0,0)',
+                plot_bgcolor='rgba(0,0,0,0)',
+                font=dict(color="#ffffff"), # Force Pure White font for all text
+                title_font=dict(size=14, color="#d4af37"),
                 margin=dict(l=0, r=0, t=40, b=0),
-                legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+                height=450,
+                # Legend Fix: Ensure text is white and background is transparent
+                legend=dict(
+                    orientation="h", 
+                    yanchor="bottom", 
+                    y=1.02, 
+                    xanchor="right", 
+                    x=1,
+                    font=dict(color="white", size=10),
+                    bgcolor="rgba(0,0,0,0)"
+                ),
+                # Hover Box Fix: Force dark background and white text for high contrast
+                hoverlabel=dict(
+                    bgcolor="#1a1c23", 
+                    font_size=12,
+                    font_color="white",
+                    bordercolor="#d4af37"
+                )
             )
 
             st.plotly_chart(fig, use_container_width=True)
