@@ -142,6 +142,8 @@ def set_design():
         </style>
         ''', unsafe_allow_html=True)
 
+set_design()
+
 # --- 4. IMPORTS ---
 from utils.sheets_handler import get_merged_data, save_to_gsheet
 from utils.pdf_processor import split_pdf_pages
@@ -564,9 +566,11 @@ with tab_dash:
 
             st.plotly_chart(fig, use_container_width=True)
 
-    create_kpi_chart_block(col_h, "High", "#18ccec")
-    create_kpi_chart_block(col_m, "Medium", "#d4de14")
-    create_kpi_chart_block(col_l, "Low", "#2ca02c")
+# --- EXECUTION ---
+# Ensure these match your previous design settings
+create_kpi_chart_block(col_h, "High", "#18ccec")
+create_kpi_chart_block(col_m, "Medium", "#9467bd") # Changed from yellow to Purple for contrast
+create_kpi_chart_block(col_l, "Low", "#2ca02c")
 
 
 
