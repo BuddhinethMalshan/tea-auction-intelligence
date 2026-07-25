@@ -591,32 +591,40 @@ create_kpi_chart_block(col_l, "Low", "#2ca02c")
 
 
 # ==========================================
-# TAB 3: PRICE PREDICTOR
+# TAB 3: PRICE PREDICTOR (TOTAL STABLE INTEGRATION)
 # ==========================================
 with tab_pred:
     st.header("🔮 Price Prediction Engine")
 
-    # 1. Initialize Engines
+    # 1. Initialize Engines in Session State
     if "gemini" not in st.session_state:
         st.session_state.gemini = TeaGeminiEngine(api_key=st.secrets["GEMINI_API_KEY"])
     if "engine" not in st.session_state:
         st.session_state.engine = TeaInferenceEngine()
 
-    # Load master history for combinations
-    # Using the cached function we created earlier for speed
+    # Load master history for combinations (using cached function)
     history = load_base_data() 
     combos = history[['elevation', 'region', 'grade']].drop_duplicates().sort_values(['elevation', 'region'])
 
     # 2. Upload Section
-    uploaded_file = st.file_uploader("Upload Weekly Auction Report (PDF)", type="pdf")
+    st.write("### 📂 1. Upload Weekly Auction Report")
+    uploaded_file = st.file_uploader("Upload Forbes & Walker PDF to pre-fill data", type="pdf")
     
     if uploaded_file:
+        # Automated AI Extraction & Debug Splitting
         if 'extracted' not in st.session_state or st.button("🔄 Re-process PDF Report"):
-            with st.status("🛠 AI Data Intelligence...", expanded=True) as status:
+            with st.status("⚙️ Processing Intelligence Pipeline...", expanded=True) as status:
                 from utils.pdf_processor import split_pdf_pages
                 pages = split_pdf_pages(uploaded_file)
+                
+                st.write("🤖 Gemini AI reading and averaging market data...")
                 st.session_state.extracted = st.session_state.gemini.process_all(pages)
-                status.update(label="✅ AI Extraction Complete", state="complete")
+                # Clear previous results when a new file is uploaded
+                if 'final_results' in st.session_state:
+                    del st.session_state.final_results
+                if 'show_results' in st.session_state:
+                    st.session_state.show_results = False
+                status.update(label="✅ AI Extraction & Averaging Complete!", state="complete")
         
         ext = st.session_state.extracted
 
@@ -626,9 +634,6 @@ with tab_pred:
         # --- ROBUST DATE HANDLING (CLOUD COMPATIBLE) ---
         raw_ai_date = ext.get('sale_date')
         date_extracted_successfully = False
-        
-        # We use today's date ONLY as a placeholder to prevent the Cloud crash
-        # But we track if it was actually found by the AI
         def_date = datetime.date.today()
         
         if raw_ai_date:
@@ -637,95 +642,91 @@ with tab_pred:
                 if not pd.isna(temp_date):
                     def_date = temp_date.date()
                     date_extracted_successfully = True
-            except:
-                pass
+            except: pass
         
         col_m1, col_m2 = st.columns(2)
-        
-        # This renders safely on Cloud because def_date is never None
-        verified_date = col_m1.date_input(
-            "Auction Date (Anchor)", 
-            value=def_date, 
-            help="Mandatory: Select the Wednesday of the auction."
-        )
-        
-        u_usd = col_m2.number_input(
-            "Latest USD/LKR Rate", 
-            value=float(ext.get('usd_rate', 300.0)), 
-            format="%.2f"
-        )
+        verified_date = col_m1.date_input("Auction Date (Anchor)", value=def_date)
+        u_usd = col_m2.number_input("Latest USD/LKR Rate", value=float(ext.get('usd_rate', 300.0)), format="%.2f")
         
         # --- DATA INTEGRITY GUARD ---
-        # If AI failed, force the user to interact with a checkbox to prevent accidental "Today" sync
         if not date_extracted_successfully:
-            st.warning("⚠️ **Set the date to the report date to continue.** ")
+            st.warning("⚠️ **AI Date Extraction Failed.** Please set the correct Auction Wednesday to continue.")
             date_confirmed = st.checkbox("I have manually verified that the Auction Date above is correct.")
         else:
             st.success(f"✅ AI detected Auction Date: {verified_date}")
-            date_confirmed = True # AI found it, so it's pre-confirmed
+            date_confirmed = True
 
-        # Logic to block the rest of the UI if date isn't confirmed
         if not date_confirmed:
             st.error("🚨 Please verify/correct the Auction Date and check the confirmation box to proceed.")
-            st.stop() # Stops execution here until the user checks the box
+            st.stop()
 
-        # --- TABLE BUILDING HELPERS ---
-        weather_opts = ["Bright", "Rainy", "Overcast", "Mixed"]
-        intake_opts = ["Maintained", "Decline", "Increase", "Slight Decline"]
+        # --- NORMALIZATION HELPERS ---
+        def clean_text(text):
+            if not text: return ""
+            return str(text).replace("[", "").replace("]", "").replace("||", "|").strip().upper()
 
-        def norm_reg(name):
-            n = str(name).upper().strip()
-            if "NUWARA ELIYA" in n: return "NUWARA ELIYAS"
-            if "UDAPUSSELLAWA" in n: return "UDAPUSSELLAWAS"
-            if "LOW GROWN" in n: return "LOW GROWNS"
-            return n
+        def clean_grade(text):
+            if not text: return ""
+            return str(text).replace("[", "").replace("]", "").replace("/", "").replace(" ", "").upper().strip()
 
-        avg_p_map = {}
+        # 1. Process Extracted AI Prices into Lookup Map
+        pdf_avg_price_lookup = {}
         if not ext['extracted_prices_df'].empty:
-            df_avg_p = ext['extracted_prices_df']
-            avg_p_map = dict(zip(df_avg_p['region'] + "|" + df_avg_p['grade'], df_avg_p['price']))
+            df_pdf = ext['extracted_prices_df'].copy()
+            df_pdf['clean_reg'] = df_pdf['region'].apply(clean_text)
+            df_pdf['clean_grd'] = df_pdf['grade'].apply(clean_grade)
+            pdf_avg_price_lookup = dict(zip(df_pdf['clean_reg'] + "|" + df_pdf['clean_grd'], df_pdf['price']))
         
-        ai_w_map = {norm_reg(k): v for k, v in ext.get('weather_mapping', {}).items()}
-        ai_i_map = {norm_reg(k): v for k, v in ext.get('intake_mapping', {}).items()}
+        # 2. Normalize AI Weather/Intake
+        ai_w_map = {clean_text(k): v for k, v in ext.get('weather_mapping', {}).items()}
+        ai_i_map = {clean_text(k): v for k, v in ext.get('intake_mapping', {}).items()}
 
+        # 3. Build the 43-Row Table
         verify_rows = []
         for _, row in combos.iterrows():
-            reg_u, grd_u = row['region'].upper(), row['grade'].upper()
-            lookup_key = f"{reg_u}|{grd_u}"
+            h_reg = clean_text(row['region'])
+            h_grd = clean_grade(row['grade'])
+            lookup_key = f"{h_reg}|{h_grd}"
             hist_p = history[(history['region'] == row['region']) & (history['grade'] == row['grade'])]['price'].iloc[-1]
             
-            is_pdf = lookup_key in avg_p_map
+            # Match check
+            if lookup_key in pdf_avg_price_lookup:
+                curr_p, src_label = round(pdf_avg_price_lookup[lookup_key], 2), "✅ PDF"
+            else:
+                curr_p, src_label = hist_p, "⏳ History"
+            
             verify_rows.append({
                 "Region": row['region'], "Grade": row['grade'],
-                "Price (LKR)": float(avg_p_map.get(lookup_key, hist_p)),
-                "Source": "✅ PDF" if is_pdf else "⏳ History",
-                "Weather": ai_w_map.get(reg_u, "Bright"),
-                "Intake": ai_i_map.get(reg_u, "Maintained")
+                "Price (LKR)": float(curr_p), "Source": src_label,
+                "Weather": ai_w_map.get(h_reg, "Bright"),
+                "Intake": ai_i_map.get(h_reg, "Maintained")
             })
 
+        # --- THE VERIFICATION GRID ---
         edited_df = st.data_editor(pd.DataFrame(verify_rows), use_container_width=True, hide_index=True, height=400,
             column_config={
                 "Source": st.column_config.TextColumn(disabled=True),
-                "Weather": st.column_config.SelectboxColumn(options=weather_opts),
-                "Intake": st.column_config.SelectboxColumn(options=intake_opts)
+                "Region": st.column_config.TextColumn(disabled=True),
+                "Grade": st.column_config.TextColumn(disabled=True),
+                "Weather": st.column_config.SelectboxColumn(options=["Bright", "Rainy", "Overcast", "Mixed"]),
+                "Intake": st.column_config.SelectboxColumn(options=["Maintained", "Increase", "Decline", "Slight Decline"])
             })
         
-        # Debug Expander (Human-in-the-loop evidence) #####################################
+        # --- THE INVESTIGATION BUTTON (DEBUG EXPANDER) ---
         with st.expander("🔍 View Raw Intelligence Extraction Details"):
-            st.info("Raw data returned by Gemini AI before normalization.")
+            st.info("Raw pipe-delimited data exactly as returned by Gemini AI.")
             st.write(f"**Extracted USD Rate:** Rs. {ext.get('usd_rate')}")
             col_a, col_b = st.columns(2)
             col_a.text_area("Weather Extraction (Raw)", ext.get('weather_raw', 'No data'), height=150)
             col_b.text_area("Top Price Extraction (Raw)", ext.get('prices_raw', 'No data'), height=150)
 
         # --- 3. PREDICTION EXECUTION ---
-        # Button disabled if date is missing
-        if st.button("🚀 Confirm & Run Forecast", disabled=(verified_date is None)):
+        if st.button("🚀 Confirm & Run Forecast"):
             st.session_state.current_user_payload = {
                 "usd_rate": u_usd,
                 "weather_mapping": dict(zip(edited_df['Region'], edited_df['Weather'])),
                 "intake_mapping": dict(zip(edited_df['Region'], edited_df['Intake'])),
-                "manual_prices": dict(zip(edited_df['Region'].apply(norm_reg) + "|" + edited_df['Grade'].str.upper(), edited_df['Price (LKR)']))
+                "manual_prices": dict(zip(edited_df['Region'] + "|" + edited_df['Grade'], edited_df['Price (LKR)']))
             }
             
             with st.spinner("🧠 Generating Multi-Horizon Forecasts..."):
@@ -734,17 +735,14 @@ with tab_pred:
                 st.rerun()
 
         # --- 4. DISPLAY AND SAVE RESULTS ---
-        if st.session_state.get('show_results'):
+        if st.session_state.get('show_results') and 'final_results' in st.session_state:
             st.divider()
-
             st.subheader("📈 Integrated Forecast Results")
             st.dataframe(st.session_state.final_results, use_container_width=True)
             
-            if st.button("💾 Finalize & Push to Cloud (Google Sheets)", disabled=(verified_date is None)):
+            if st.button("💾 Finalize & Push to Cloud (Google Sheets)"):
                 with st.spinner("Syncing to Cloud..."):
                     to_save = st.session_state.final_results.copy()
-                    
-                    # 1. Map Inputs and Context
                     to_save['true_date'] = verified_date 
                     to_save['USD_to_LKR'] = u_usd
                     
@@ -752,24 +750,22 @@ with tab_pred:
                     to_save['weather_cat'] = to_save['Region'].map(payload['weather_mapping'])
                     to_save['crop_cat'] = to_save['Region'].map(payload['intake_mapping'])
                     
-                    # 2. Re-map Elevation (CRITICAL for Dashboard charts)
+                    # Restore Elevation mapping for Dashboard
                     elev_map = dict(zip(combos['region'], combos['elevation']))
                     to_save['elevation'] = to_save['Region'].map(elev_map)
                     
-                    # 3. Rename to match Google Sheet strict Schema
+                    # Final Schema Formatting
                     to_save = to_save.rename(columns={
                         'Region': 'region', 'Grade': 'grade',
-                        'Current Price': 'price',
-                        '1W Forecast (Y)': 'forecast_1w',
-                        '2W Forecast (Y)': 'forecast_2w',
-                        '4W Forecast (Y)': 'forecast_4w'
+                        'Current Price': 'price', '1W Forecast (Y)': 'forecast_1w',
+                        '2W Forecast (Y)': 'forecast_2w', '4W Forecast (Y)': 'forecast_4w'
                     })
 
-                    from utils.sheets_handler import save_to_gsheet
-                    if save_to_gsheet(to_save):
+                    # Strict 11-column selection
+                    gsheet_cols = ['true_date', 'region', 'grade', 'elevation', 'price', 'forecast_1w', 'forecast_2w', 'forecast_4w', 'weather_cat', 'crop_cat', 'USD_to_LKR']
+                    final_to_push = to_save[gsheet_cols]
+
+                    if save_to_gsheet(final_to_push):
                         st.balloons()
                         st.success("✅ Dashboard Updated Permanently!")
-
-                        # --- ADD THIS LINE TO FIX AUTO-UPDATE ---
-                        st.rerun() 
-                        # ----------------------------------------
+                        st.rerun()
