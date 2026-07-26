@@ -40,6 +40,15 @@ def set_design():
                     url("data:image/png;base64,{bin_str}");
         '''
 
+def set_design():
+    bg_css = ""
+    if os.path.exists("assets/bg_tea.jpg"):
+        bin_str = get_base64("assets/bg_tea.jpg")
+        bg_css = f'''
+        background: linear-gradient(rgba(0, 0, 0, 0.88), rgba(0, 0, 0, 0.88)), 
+                    url("data:image/png;base64,{bin_str}");
+        '''
+
     st.markdown(f'''
         <style>
         /* 1. Global Background Overlay */
@@ -762,6 +771,8 @@ with tab_pred:
             col_a, col_b = st.columns(2)
             col_a.text_area("Weather Extraction (Raw)", ext.get('weather_raw', 'No data'), height=150)
             col_b.text_area("Top Price Extraction (Raw)", ext.get('prices_raw', 'No data'), height=150)
+
+
 
 
 
