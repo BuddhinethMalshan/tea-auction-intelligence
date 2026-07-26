@@ -759,6 +759,64 @@ with tab_pred:
             column_config={"Source": st.column_config.TextColumn(disabled=True)})
 
 
+
+
+        # # 1. Process Extracted AI Prices into Lookup Map
+        # pdf_avg_price_lookup = {}
+        # if not ext['extracted_prices_df'].empty:
+        #     df_pdf = ext['extracted_prices_df'].copy()
+        #     df_pdf['clean_reg'] = df_pdf['region'].apply(clean_text)
+        #     df_pdf['clean_grd'] = df_pdf['grade'].apply(clean_grade)
+        #     pdf_avg_price_lookup = dict(zip(df_pdf['clean_reg'] + "|" + df_pdf['clean_grd'], df_pdf['price']))
+        
+        # # 2. Normalize AI Weather/Intake
+        # ai_w_map = {clean_text(k): v for k, v in ext.get('weather_mapping', {}).items()}
+        # ai_i_map = {clean_text(k): v for k, v in ext.get('intake_mapping', {}).items()}
+
+        # # 3. Build the 43-Row Table
+        # verify_rows = []
+        # for _, row in combos.iterrows():
+        #     h_reg = clean_text(row['region'])
+        #     h_grd = clean_grade(row['grade'])
+        #     lookup_key = f"{h_reg}|{h_grd}"
+        #     hist_p = history[(history['region'] == row['region']) & (history['grade'] == row['grade'])]['price'].iloc[-1]
+            
+        #     # Match check
+        #     if lookup_key in pdf_avg_price_lookup:
+        #         curr_p, src_label = round(pdf_avg_price_lookup[lookup_key], 2), "✅ PDF"
+        #     else:
+        #         curr_p, src_label = hist_p, "⏳ History"
+            
+        #     verify_rows.append({
+        #         "Region": row['region'], "Grade": row['grade'],
+        #         "Price (LKR)": float(curr_p), "Source": src_label,
+        #         "Weather": ai_w_map.get(h_reg, "Bright"),
+        #         "Intake": ai_i_map.get(h_reg, "Maintained")
+        #     })
+
+        # --- THE VERIFICATION GRID ---
+        # edited_df = st.data_editor(pd.DataFrame(verify_rows), use_container_width=True, hide_index=True, height=400,
+        #     column_config={
+        #         "Source": st.column_config.TextColumn(disabled=True),
+        #         "Region": st.column_config.TextColumn(disabled=True),
+        #         "Grade": st.column_config.TextColumn(disabled=True),
+        #         "Weather": st.column_config.SelectboxColumn(options=["Bright", "Rainy", "Overcast", "Mixed"]),
+        #         "Intake": st.column_config.SelectboxColumn(options=["Maintained", "Increase", "Decline", "Slight Decline"])
+        #     })
+
+  
+        # # --- THE INVESTIGATION BUTTON (DEBUG EXPANDER) ---
+        # with st.expander("🔍 View Raw Intelligence Extraction Details"):
+        #     st.info("Raw pipe-delimited data exactly as returned by Gemini AI.")
+        #     st.write(f"**Extracted USD Rate:** Rs. {ext.get('usd_rate')}")
+        #     col_a, col_b = st.columns(2)
+        #     col_a.text_area("Weather Extraction (Raw)", ext.get('weather_raw', 'No data'), height=150)
+        #     col_b.text_area("Top Price Extraction (Raw)", ext.get('prices_raw', 'No data'), height=150)
+
+
+
+
+
 # --- UPDATED INVESTIGATION SECTION ---
         with st.expander("🔍 View Raw Intelligence Extraction Details"):
             st.info("Technical Mapping Report: Why prices were selected or averaged.")
