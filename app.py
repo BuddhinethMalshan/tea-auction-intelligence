@@ -5,6 +5,7 @@ import sys
 import os
 import base64
 import datetime
+import re
 
 # --- 1. PAGE CONFIG ---
 st.set_page_config(
@@ -600,6 +601,295 @@ create_kpi_chart_block(col_l, "Low", "#2ca02c")
 
 
 
+# # ==========================================
+# # TAB 3: PRICE PREDICTOR (TOTAL STABLE INTEGRATION)
+# # ==========================================
+# with tab_pred:
+#     st.header("🔮 Price Prediction Engine")
+
+#     # 1. Initialize Engines in Session State
+#     if "gemini" not in st.session_state:
+#         st.session_state.gemini = TeaGeminiEngine(api_key=st.secrets["GEMINI_API_KEY"])
+#     if "engine" not in st.session_state:
+#         st.session_state.engine = TeaInferenceEngine()
+
+#     # Load master history for combinations (using cached function)
+#     history = load_base_data() 
+#     combos = history[['elevation', 'region', 'grade']].drop_duplicates().sort_values(['elevation', 'region'])
+
+#     # 2. Upload Section
+#     st.write("### 📂 1. Upload Weekly Auction Report")
+#     uploaded_file = st.file_uploader("Upload Forbes & Walker PDF to pre-fill data", type="pdf")
+    
+#     if uploaded_file:
+#         # Automated AI Extraction & Debug Splitting
+#         if 'extracted' not in st.session_state or st.button("🔄 Re-process PDF Report"):
+#             with st.status("⚙️ Processing Intelligence Pipeline...", expanded=True) as status:
+#                 from utils.pdf_processor import split_pdf_pages
+#                 pages = split_pdf_pages(uploaded_file)
+                
+#                 st.write("🤖 Gemini AI reading and averaging market data...")
+#                 st.session_state.extracted = st.session_state.gemini.process_all(pages)
+#                 # Clear previous results when a new file is uploaded
+#                 if 'final_results' in st.session_state:
+#                     del st.session_state.final_results
+#                 if 'show_results' in st.session_state:
+#                     st.session_state.show_results = False
+#                 status.update(label="✅ AI Extraction & Averaging Complete!", state="complete")
+        
+#         ext = st.session_state.extracted
+
+#         st.divider()
+#         st.subheader("🛠 Step 1: Verify Market Context")
+        
+#         # --- ROBUST DATE HANDLING (CLOUD COMPATIBLE) ---
+#         raw_ai_date = ext.get('sale_date')
+#         date_extracted_successfully = False
+#         def_date = datetime.date.today()
+        
+#         if raw_ai_date:
+#             try:
+#                 temp_date = pd.to_datetime(raw_ai_date)
+#                 if not pd.isna(temp_date):
+#                     def_date = temp_date.date()
+#                     date_extracted_successfully = True
+#             except: pass
+        
+#         col_m1, col_m2 = st.columns(2)
+#         verified_date = col_m1.date_input("Auction Date (Anchor)", value=def_date)
+#         u_usd = col_m2.number_input("Latest USD/LKR Rate", value=float(ext.get('usd_rate', 300.0)), format="%.2f")
+        
+#         # --- DATA INTEGRITY GUARD ---
+#         if not date_extracted_successfully:
+#             st.warning("⚠️ **Please select the Auction Date of the report before continuing** ")
+#             date_confirmed = st.checkbox("I have manually verified that the Auction Date above is correct.")
+#         else:
+#             st.success(f"✅ AI detected Auction Date: {verified_date}")
+#             date_confirmed = True
+
+#         if not date_confirmed:
+#             st.error("🚨 Please verify/correct the Auction Date and check the confirmation box to proceed.")
+#             st.stop()
+
+#         # --- NORMALIZATION HELPERS ---
+#         def clean_text(text):
+#             if not text: return ""
+#             return str(text).replace("[", "").replace("]", "").replace("||", "|").strip().upper()
+
+#         def clean_grade(text):
+#             if not text: return ""
+#             return str(text).replace("[", "").replace("]", "").replace("/", "").replace(" ", "").upper().strip()
+        
+
+
+# # --- UPDATED ADVANCED MAPPING & AVERAGING LOGIC ---
+        
+#         # 1. Clean the AI-extracted dataframe for matching
+#         df_pdf = ext['extracted_prices_df'].copy()
+#         if not df_pdf.empty:
+#             df_pdf['clean_reg'] = df_pdf['region'].apply(clean_text)
+#             # For AI data, we keep slashes but remove spaces/brackets for comparison
+#             df_pdf['clean_grd'] = df_pdf['grade'].astype(str).replace(r'[\[\]\s]', '', regex=True).str.upper()
+
+#         # 2. Normalize AI Weather and Intake Mappings
+#         ai_w_map = {clean_text(k): v for k, v in ext.get('weather_mapping', {}).items()}
+#         ai_i_map = {clean_text(k): v for k, v in ext.get('intake_mapping', {}).items()}
+
+#         # 3. Build the 43-Row Table with Priority Logic
+#     # --- 3. BUILD THE 43-ROW TABLE (CLEAN UI + TECH REPORT) ---
+#         verify_rows = []
+#         mapping_report = [] # To store the "Why" for the investigation section
+
+#         for _, row in combos.iterrows():
+#             reg_h = row['region']
+#             grd_h = row['grade']
+#             hist_reg = clean_text(reg_h)
+#             hist_grd = clean_grade(grd_h)
+#             lookup_key = f"{hist_reg}|{hist_grd}"
+            
+#             hist_p = history[(history['region'] == reg_h) & (history['grade'] == grd_h)]['price'].iloc[-1]
+            
+#             current_p = None
+#             display_src = "⏳ History"
+#             tech_note = "Not found in PDF."
+
+#             if not df_pdf.empty:
+#                 # PRIORITY 1: EXACT MATCH
+#                 exact_match = df_pdf[(df_pdf['clean_reg'] == hist_reg) & (df_pdf['clean_grd'] == hist_grd)]
+#                 if not exact_match.empty:
+#                     current_p = exact_match['price'].mean()
+#                     display_src = "✅ PDF"
+#                     tech_note = "Exact match found and averaged."
+                
+#                 # PRIORITY 2: SLASH GRADE DECOMPOSITION
+#                 elif "/" in grd_h:
+#                     parts = [p.strip().upper().replace(" ", "") for p in grd_h.split("/")]
+#                     matches = df_pdf[(df_pdf['clean_reg'] == hist_reg) & (df_pdf['clean_grd'].isin(parts))]
+                    
+#                     if not matches.empty:
+#                         part_averages = matches.groupby('clean_grd')['price'].mean()
+#                         if len(part_averages) > 1:
+#                             price_diff = abs(part_averages.iloc[0] - part_averages.iloc[1])
+#                             if price_diff <= 250:
+#                                 current_p = part_averages.mean()
+#                                 display_src = "✅ PDF"
+#                                 tech_note = f"Averaged {list(part_averages.index)} (Diff: {price_diff:.0f})"
+#                             else:
+#                                 current_p = hist_p
+#                                 display_src = "⏳ History"
+#                                 tech_note = f"High Diff ({price_diff:.0f} > 250) between {list(part_averages.index)}. Using History."
+#                         else:
+#                             current_p = part_averages.iloc[0]
+#                             display_src = "✅ PDF"
+#                             tech_note = f"Partial match: used {part_averages.index[0]} only."
+
+#             if current_p is None:
+#                 current_p = hist_p
+            
+#             # Add to the Clean Grid
+#             verify_rows.append({
+#                 "Region": reg_h, "Grade": grd_h, "Price (LKR)": float(current_p),
+#                 "Source": display_src, "Weather": ai_w_map.get(hist_reg, "Bright"), "Intake": ai_i_map.get(hist_reg, "Maintained")
+#             })
+            
+#             # Add to the Technical Report (for the expander)
+#             mapping_report.append(f"{reg_h} | {grd_h}: {tech_note}")
+
+#         # Render the Clean Data Editor
+#         edited_df = st.data_editor(pd.DataFrame(verify_rows), use_container_width=True, hide_index=True, height=400,
+#             column_config={"Source": st.column_config.TextColumn(disabled=True)})
+
+
+
+
+#         # # 1. Process Extracted AI Prices into Lookup Map
+#         # pdf_avg_price_lookup = {}
+#         # if not ext['extracted_prices_df'].empty:
+#         #     df_pdf = ext['extracted_prices_df'].copy()
+#         #     df_pdf['clean_reg'] = df_pdf['region'].apply(clean_text)
+#         #     df_pdf['clean_grd'] = df_pdf['grade'].apply(clean_grade)
+#         #     pdf_avg_price_lookup = dict(zip(df_pdf['clean_reg'] + "|" + df_pdf['clean_grd'], df_pdf['price']))
+        
+#         # # 2. Normalize AI Weather/Intake
+#         # ai_w_map = {clean_text(k): v for k, v in ext.get('weather_mapping', {}).items()}
+#         # ai_i_map = {clean_text(k): v for k, v in ext.get('intake_mapping', {}).items()}
+
+#         # # 3. Build the 43-Row Table
+#         # verify_rows = []
+#         # for _, row in combos.iterrows():
+#         #     h_reg = clean_text(row['region'])
+#         #     h_grd = clean_grade(row['grade'])
+#         #     lookup_key = f"{h_reg}|{h_grd}"
+#         #     hist_p = history[(history['region'] == row['region']) & (history['grade'] == row['grade'])]['price'].iloc[-1]
+            
+#         #     # Match check
+#         #     if lookup_key in pdf_avg_price_lookup:
+#         #         curr_p, src_label = round(pdf_avg_price_lookup[lookup_key], 2), "✅ PDF"
+#         #     else:
+#         #         curr_p, src_label = hist_p, "⏳ History"
+            
+#         #     verify_rows.append({
+#         #         "Region": row['region'], "Grade": row['grade'],
+#         #         "Price (LKR)": float(curr_p), "Source": src_label,
+#         #         "Weather": ai_w_map.get(h_reg, "Bright"),
+#         #         "Intake": ai_i_map.get(h_reg, "Maintained")
+#         #     })
+
+#         # --- THE VERIFICATION GRID ---
+#         # edited_df = st.data_editor(pd.DataFrame(verify_rows), use_container_width=True, hide_index=True, height=400,
+#         #     column_config={
+#         #         "Source": st.column_config.TextColumn(disabled=True),
+#         #         "Region": st.column_config.TextColumn(disabled=True),
+#         #         "Grade": st.column_config.TextColumn(disabled=True),
+#         #         "Weather": st.column_config.SelectboxColumn(options=["Bright", "Rainy", "Overcast", "Mixed"]),
+#         #         "Intake": st.column_config.SelectboxColumn(options=["Maintained", "Increase", "Decline", "Slight Decline"])
+#         #     })
+
+  
+#         # # --- THE INVESTIGATION BUTTON (DEBUG EXPANDER) ---
+#         # with st.expander("🔍 View Raw Intelligence Extraction Details"):
+#         #     st.info("Raw pipe-delimited data exactly as returned by Gemini AI.")
+#         #     st.write(f"**Extracted USD Rate:** Rs. {ext.get('usd_rate')}")
+#         #     col_a, col_b = st.columns(2)
+#         #     col_a.text_area("Weather Extraction (Raw)", ext.get('weather_raw', 'No data'), height=150)
+#         #     col_b.text_area("Top Price Extraction (Raw)", ext.get('prices_raw', 'No data'), height=150)
+
+
+
+
+
+# # --- UPDATED INVESTIGATION SECTION ---
+#         with st.expander("🔍 View Raw Intelligence Extraction Details"):
+#             st.info("Technical Mapping Report: Why prices were selected or averaged.")
+            
+#             # Display the technical notes we gathered in the loop
+#             st.text_area("Extraction Logic Notes", value="\n".join(mapping_report), height=200)
+            
+#             st.divider()
+#             st.write(f"**Extracted USD Rate:** Rs. {ext.get('usd_rate')}")
+#             col_a, col_b = st.columns(2)
+#             col_a.text_area("Weather Extraction (Raw)", ext.get('weather_raw', 'No data'), height=150)
+#             col_b.text_area("Top Price Extraction (Raw)", ext.get('prices_raw', 'No data'), height=150)
+
+
+
+
+
+#         # --- 3. PREDICTION EXECUTION ---
+#         if st.button("🚀 Confirm & Run Forecast"):
+#             st.session_state.current_user_payload = {
+#                 "usd_rate": u_usd,
+#                 "weather_mapping": dict(zip(edited_df['Region'], edited_df['Weather'])),
+#                 "intake_mapping": dict(zip(edited_df['Region'], edited_df['Intake'])),
+#                 "manual_prices": dict(zip(edited_df['Region'] + "|" + edited_df['Grade'], edited_df['Price (LKR)']))
+#             }
+            
+#             with st.spinner("🧠 Generating Multi-Horizon Forecasts..."):
+#                 st.session_state.final_results = st.session_state.engine.run_prediction(history, st.session_state.current_user_payload)
+#                 st.session_state.show_results = True
+#                 st.rerun()
+
+#         # --- 4. DISPLAY AND SAVE RESULTS ---
+#         if st.session_state.get('show_results') and 'final_results' in st.session_state:
+#             st.divider()
+#             st.subheader("📈 Integrated Forecast Results")
+#             st.dataframe(st.session_state.final_results, use_container_width=True)
+            
+#             if st.button("💾 Finalize & Push to Cloud (Google Sheets)"):
+#                 with st.spinner("Syncing to Cloud..."):
+#                     to_save = st.session_state.final_results.copy()
+#                     to_save['true_date'] = verified_date 
+#                     to_save['USD_to_LKR'] = u_usd
+                    
+#                     payload = st.session_state.current_user_payload
+#                     to_save['weather_cat'] = to_save['Region'].map(payload['weather_mapping'])
+#                     to_save['crop_cat'] = to_save['Region'].map(payload['intake_mapping'])
+                    
+#                     # Restore Elevation mapping for Dashboard
+#                     elev_map = dict(zip(combos['region'], combos['elevation']))
+#                     to_save['elevation'] = to_save['Region'].map(elev_map)
+                    
+#                     # Final Schema Formatting
+#                     to_save = to_save.rename(columns={
+#                         'Region': 'region', 'Grade': 'grade',
+#                         'Current Price': 'price', '1W Forecast (Y)': 'forecast_1w',
+#                         '2W Forecast (Y)': 'forecast_2w', '4W Forecast (Y)': 'forecast_4w'
+#                     })
+
+#                     # Strict 11-column selection
+#                     gsheet_cols = ['true_date', 'region', 'grade', 'elevation', 'price', 'forecast_1w', 'forecast_2w', 'forecast_4w', 'weather_cat', 'crop_cat', 'USD_to_LKR']
+#                     final_to_push = to_save[gsheet_cols]
+
+#                     if save_to_gsheet(final_to_push):
+#                         st.balloons()
+#                         st.success("✅ Dashboard Updated Permanently!")
+#                         st.rerun()
+
+
+
+
+
+
 # ==========================================
 # TAB 3: PRICE PREDICTOR (TOTAL STABLE INTEGRATION)
 # ==========================================
@@ -670,14 +960,58 @@ with tab_pred:
             st.error("🚨 Please verify/correct the Auction Date and check the confirmation box to proceed.")
             st.stop()
 
+        # Keep the report date for source matching, but use T+1 for forecasting.
+        forecast_date = pd.to_datetime(verified_date) + pd.Timedelta(days=7)
+
         # --- NORMALIZATION HELPERS ---
+        def clean_key(text):
+            if not text:
+                return ""
+            return re.sub(r'[^A-Z0-9]+', '', str(text).upper())
+
         def clean_text(text):
             if not text: return ""
-            return str(text).replace("[", "").replace("]", "").replace("||", "|").strip().upper()
+            return clean_key(text)
 
         def clean_grade(text):
             if not text: return ""
-            return str(text).replace("[", "").replace("]", "").replace("/", "").replace(" ", "").upper().strip()
+            return clean_key(text)
+
+        def grade_variants(text):
+            raw_text = str(text).upper() if text is not None else ""
+            parts = [clean_key(part) for part in raw_text.replace("-", "/").split("/")]
+            alias_map = {
+                "OPA": "OP",
+                "OP1": "OP",
+                "PEK1": "PEK",
+                "FBOP1": "FBOP",
+                "BOPFSP": "BOPF",
+                "BOP1": "BOP",
+            }
+
+            variants = set()
+            for part in parts:
+                if not part:
+                    continue
+                variants.add(part)
+                variants.add(alias_map.get(part, part))
+            return variants
+
+        def grade_family(text):
+            variants = grade_variants(text)
+            family_map = {
+                "BOP": "BOP",
+                "BOPF": "BOPF",
+                "FBOP": "FBOP",
+                "PEK": "PEK",
+                "OP": "OP",
+            }
+
+            for variant in variants:
+                for prefix, family in family_map.items():
+                    if variant.startswith(prefix):
+                        return family
+            return "" if not variants else sorted(variants)[0]
         
 
 
@@ -686,25 +1020,26 @@ with tab_pred:
         # 1. Clean the AI-extracted dataframe for matching
         df_pdf = ext['extracted_prices_df'].copy()
         if not df_pdf.empty:
-            df_pdf['clean_reg'] = df_pdf['region'].apply(clean_text)
-            # For AI data, we keep slashes but remove spaces/brackets for comparison
-            df_pdf['clean_grd'] = df_pdf['grade'].astype(str).replace(r'[\[\]\s]', '', regex=True).str.upper()
+            df_pdf['clean_reg'] = df_pdf['region'].apply(clean_key)
+            df_pdf['clean_grd'] = df_pdf['grade'].apply(clean_key)
+            df_pdf['grade_family'] = df_pdf['grade'].apply(grade_variants)
+            df_pdf['grade_group'] = df_pdf['grade'].apply(grade_family)
 
         # 2. Normalize AI Weather and Intake Mappings
         ai_w_map = {clean_text(k): v for k, v in ext.get('weather_mapping', {}).items()}
         ai_i_map = {clean_text(k): v for k, v in ext.get('intake_mapping', {}).items()}
 
         # 3. Build the 43-Row Table with Priority Logic
-    # --- 3. BUILD THE 43-ROW TABLE (CLEAN UI + TECH REPORT) ---
         verify_rows = []
         mapping_report = [] # To store the "Why" for the investigation section
 
         for _, row in combos.iterrows():
             reg_h = row['region']
             grd_h = row['grade']
-            hist_reg = clean_text(reg_h)
-            hist_grd = clean_grade(grd_h)
-            lookup_key = f"{hist_reg}|{hist_grd}"
+            hist_reg = clean_key(reg_h)
+            hist_grd = clean_key(grd_h)
+            hist_grade_family = grade_variants(grd_h)
+            hist_grade_group = grade_family(grd_h)
             
             hist_p = history[(history['region'] == reg_h) & (history['grade'] == grd_h)]['price'].iloc[-1]
             
@@ -713,34 +1048,23 @@ with tab_pred:
             tech_note = "Not found in PDF."
 
             if not df_pdf.empty:
-                # PRIORITY 1: EXACT MATCH
                 exact_match = df_pdf[(df_pdf['clean_reg'] == hist_reg) & (df_pdf['clean_grd'] == hist_grd)]
+
+                if exact_match.empty:
+                    family_match = df_pdf[
+                        (df_pdf['clean_reg'] == hist_reg) &
+                        (
+                            (df_pdf['grade_group'] == hist_grade_group) |
+                            (df_pdf['grade_family'].apply(lambda family: bool(family & hist_grade_family)))
+                        )
+                    ]
+                    if not family_match.empty:
+                        exact_match = family_match
+
                 if not exact_match.empty:
                     current_p = exact_match['price'].mean()
                     display_src = "✅ PDF"
-                    tech_note = "Exact match found and averaged."
-                
-                # PRIORITY 2: SLASH GRADE DECOMPOSITION
-                elif "/" in grd_h:
-                    parts = [p.strip().upper().replace(" ", "") for p in grd_h.split("/")]
-                    matches = df_pdf[(df_pdf['clean_reg'] == hist_reg) & (df_pdf['clean_grd'].isin(parts))]
-                    
-                    if not matches.empty:
-                        part_averages = matches.groupby('clean_grd')['price'].mean()
-                        if len(part_averages) > 1:
-                            price_diff = abs(part_averages.iloc[0] - part_averages.iloc[1])
-                            if price_diff <= 250:
-                                current_p = part_averages.mean()
-                                display_src = "✅ PDF"
-                                tech_note = f"Averaged {list(part_averages.index)} (Diff: {price_diff:.0f})"
-                            else:
-                                current_p = hist_p
-                                display_src = "⏳ History"
-                                tech_note = f"High Diff ({price_diff:.0f} > 250) between {list(part_averages.index)}. Using History."
-                        else:
-                            current_p = part_averages.iloc[0]
-                            display_src = "✅ PDF"
-                            tech_note = f"Partial match: used {part_averages.index[0]} only."
+                    tech_note = "Matched PDF row(s) and averaged."
 
             if current_p is None:
                 current_p = hist_p
@@ -757,6 +1081,13 @@ with tab_pred:
         # Render the Clean Data Editor
         edited_df = st.data_editor(pd.DataFrame(verify_rows), use_container_width=True, hide_index=True, height=400,
             column_config={"Source": st.column_config.TextColumn(disabled=True)})
+
+        pdf_rows = int((pd.DataFrame(verify_rows)["Source"] == "✅ PDF").sum()) if verify_rows else 0
+        history_rows = int((pd.DataFrame(verify_rows)["Source"] == "⏳ History").sum()) if verify_rows else 0
+        st.caption(
+            f"Verification source summary: PDF rows = {pdf_rows}, History rows = {history_rows}, "
+            f"Gemini extracted rows = {len(df_pdf)}"
+        )
 
 
 # --- UPDATED INVESTIGATION SECTION ---
@@ -778,6 +1109,8 @@ with tab_pred:
         if st.button("🚀 Confirm & Run Forecast"):
             st.session_state.current_user_payload = {
                 "usd_rate": u_usd,
+                "auction_date": verified_date,
+                "forecast_date": forecast_date,
                 "weather_mapping": dict(zip(edited_df['Region'], edited_df['Weather'])),
                 "intake_mapping": dict(zip(edited_df['Region'], edited_df['Intake'])),
                 "manual_prices": dict(zip(edited_df['Region'] + "|" + edited_df['Grade'], edited_df['Price (LKR)']))
