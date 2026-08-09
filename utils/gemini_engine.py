@@ -52,11 +52,31 @@ class TeaGeminiEngine:
             if raw:
                 rows = []
                 for line in raw.split('\n'):
-                    p = line.split('|')
-                    if len(p) == 5:
-                        try:
-                            rows.append({"region": p[0].strip().upper(), "grade": p[2].strip().upper(), "price": float(re.sub(r'[^\d.]', '', p[3]))})
-                        except: continue
+                    if not line.strip() or line.strip().startswith("| :---"):
+                        continue
+
+                    cells = [part.strip() for part in line.split("|") if part.strip()]
+
+                    # Gemini usually returns Markdown rows like:
+                    # Region | Estate | Grade | Price | IsForbes
+                    # After trimming empty edge cells, we expect 5 values.
+                    if len(cells) < 5:
+                        continue
+
+                    try:
+                        region = cells[0].upper()
+                        grade = cells[2].upper()
+                        price_match = re.search(r"\d+(?:[.,]\d+)?", cells[3].replace(",", ""))
+                        if not price_match:
+                            continue
+
+                        rows.append({
+                            "region": region,
+                            "grade": grade,
+                            "price": float(price_match.group(0).replace(",", ""))
+                        })
+                    except:
+                        continue
                 if rows:
                     raw_df = pd.DataFrame(rows)
                     final_output["extracted_prices_df"] = raw_df.groupby(['region', 'grade'])['price'].mean().reset_index()
