@@ -1082,12 +1082,12 @@ with tab_pred:
         edited_df = st.data_editor(pd.DataFrame(verify_rows), use_container_width=True, hide_index=True, height=400,
             column_config={"Source": st.column_config.TextColumn(disabled=True)})
 
-        pdf_rows = int((pd.DataFrame(verify_rows)["Source"] == "✅ PDF").sum()) if verify_rows else 0
-        history_rows = int((pd.DataFrame(verify_rows)["Source"] == "⏳ History").sum()) if verify_rows else 0
-        st.caption(
-            f"Verification source summary: PDF rows = {pdf_rows}, History rows = {history_rows}, "
-            f"Gemini extracted rows = {len(df_pdf)}"
-        )
+        # pdf_rows = int((pd.DataFrame(verify_rows)["Source"] == "✅ PDF").sum()) if verify_rows else 0
+        # history_rows = int((pd.DataFrame(verify_rows)["Source"] == "⏳ History").sum()) if verify_rows else 0
+        # st.caption(
+        #     f"Verification source summary: PDF rows = {pdf_rows}, History rows = {history_rows}, "
+        #     f"Gemini extracted rows = {len(df_pdf)}"
+        # )
 
 
 # --- UPDATED INVESTIGATION SECTION ---
