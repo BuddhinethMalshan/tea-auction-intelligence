@@ -20,7 +20,11 @@ class TeaInferenceEngine:
 
     def run_prediction(self, history_df, ui_input):
         results = []
-        next_date = history_df['true_date'].max() + pd.Timedelta(weeks=1)
+        if ui_input.get('forecast_date') is not None:
+            next_date = pd.to_datetime(ui_input['forecast_date'])
+        else:
+            anchor_date = pd.to_datetime(ui_input.get('auction_date', history_df['true_date'].max()))
+            next_date = anchor_date + pd.Timedelta(days=7)
         combos = history_df[['elevation', 'region', 'grade']].drop_duplicates()
 
         for _, row in combos.iterrows():
